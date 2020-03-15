@@ -69,16 +69,16 @@ int aho_insert_new_str(struct SAhoTree* aho_tree, const char* str)
     //walking down the tree
     uint32_t cur_state = 0u;
     const char* it = str;
-    while (*it && aho_tree->edge_map[*it][cur_state])
+    while (*it && aho_tree->edge_map[(uint8_t) *it][cur_state])
     {
-        cur_state = aho_tree->edge_map[*it][cur_state];
+        cur_state = aho_tree->edge_map[(uint8_t) *it][cur_state];
         ++it;
     }
 
     //extending path in the tree
     while (*it)
     {
-        aho_tree->edge_map[*it][cur_state] = aho_tree->state_cnt;
+        aho_tree->edge_map[(uint8_t) *it][cur_state] = aho_tree->state_cnt;
         cur_state = aho_tree->state_cnt;
         ++aho_tree->state_cnt;
 

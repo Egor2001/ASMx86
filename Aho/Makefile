@@ -8,12 +8,15 @@ DFLAGS= -ggdb -O0 -Wall
 
 LFLAGS=
 
-SRCFILES= main.c asm_dfa.c aho_corasick.c
+SRCDIR= src
+SRCFILES= main.c $(SRCDIR)/asm_dfa.c $(SRCDIR)/aho_corasick.c
 
 BINDIR= bin
 OBJDIR= obj
 OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/asm_dfa.o $(OBJDIR)/aho_corasick.o
 TARGET= $(BINDIR)/main
+
+INCLUDE= -I$(SRCDIR)
 
 .PHONY: clean
 
@@ -24,7 +27,7 @@ $(TARGET): $(OBJFILES)
 	$(LD) $(LFLAGS) $(OBJFILES) -o $(TARGET)
 
 $(OBJFILES): $(SRCFILES)
-	$(CC) $(CFLAGS) $(SRCFILES)
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCFILES)
 	mkdir -p $(OBJDIR)
 	mv $(patsubst $(OBJDIR)/%.o, %.o, $(OBJFILES)) $(OBJDIR)
 

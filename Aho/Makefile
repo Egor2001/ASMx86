@@ -8,11 +8,11 @@ DFLAGS= -ggdb -O0 -Wall
 
 LFLAGS=
 
-SRCFILES= main.c aho_corasick.c
+SRCFILES= main.c asm_dfa.c aho_corasick.c
 
 BINDIR= bin
 OBJDIR= obj
-OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/aho_corasick.o
+OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/asm_dfa.o $(OBJDIR)/aho_corasick.o
 TARGET= $(BINDIR)/main
 
 .PHONY: clean

@@ -6,6 +6,7 @@
 struct SAsmDfa
 {
     uint32_t state_cnt;
+    uint32_t* term_map;
     uint32_t* link_arr;
     uint32_t* edge_map[AHO_SYMB_CNT];
 };

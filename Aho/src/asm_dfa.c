@@ -9,6 +9,10 @@ int init_asm_dfa(struct SAsmDfa* asm_dfa, const struct SAhoTree* aho_tree)
     //init ::state_cnt
     asm_dfa->state_cnt = aho_tree->state_cnt;
 
+    //alloc ::term_map
+    asm_dfa->term_map = 
+        (uint32_t*) calloc(asm_dfa->state_cnt, sizeof(uint32_t));
+
     //alloc ::link_arr
     asm_dfa->link_arr = 
         (uint32_t*) calloc(asm_dfa->state_cnt, sizeof(uint32_t));
@@ -19,6 +23,11 @@ int init_asm_dfa(struct SAsmDfa* asm_dfa, const struct SAhoTree* aho_tree)
         asm_dfa->edge_map[symb_idx] = 
             (uint32_t*) calloc(asm_dfa->state_cnt, sizeof(uint32_t));
     }
+
+    //init ::term_map
+    memcpy(asm_dfa->term_map, 
+           aho_tree->dict_arr, 
+           asm_dfa->state_cnt*sizeof(uint32_t));
 
     //init ::link_arr
     memcpy(asm_dfa->link_arr, 
@@ -67,12 +76,14 @@ int delete_asm_dfa(struct SAsmDfa* asm_dfa)
     assert(asm_dfa);
 
     //freeing arrays
+    free(asm_dfa->term_map);
     free(asm_dfa->link_arr);
     for (uint32_t symb_idx = 0u; symb_idx != AHO_SYMB_CNT; ++symb_idx)
         free(asm_dfa->edge_map[symb_idx]);
 
     //zeroing values
     asm_dfa->state_cnt = 0u;
+    asm_dfa->term_map = NULL;
     asm_dfa->link_arr = NULL;
     for (uint32_t symb_idx = 0u; symb_idx != AHO_SYMB_CNT; ++symb_idx)
         asm_dfa->edge_map[symb_idx] = NULL;
@@ -115,8 +126,9 @@ int dump_asm_dfa_state(const struct SAsmDfa* asm_dfa, uint32_t state_idx,
     assert(asm_dfa);
     assert(fout);
 
-    fprintf(fout, "[%u] = { L(%u), ", 
+    fprintf(fout, "[%u] = { T(%c), L(%u), ", 
             state_idx, 
+            (asm_dfa->term_map[state_idx] ? '1' : '0'),
             asm_dfa->link_arr[state_idx]);
     for (uint32_t symb_idx = 0u; symb_idx != AHO_SYMB_CNT; ++symb_idx)
     {

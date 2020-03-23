@@ -6,10 +6,10 @@ LFLAGS=
 
 BINDIR= bin
 
-SRCFILE= test.asm
-OBJFILE= $(BINDIR)/test.o
+SRCFILE= printf.asm
+OBJFILE= $(BINDIR)/printf.o
 
-TARGET= $(BINDIR)/test
+TARGET= $(BINDIR)/printf
 
 .PHONY: clean
 

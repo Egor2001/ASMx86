@@ -1,11 +1,10 @@
 BITS 64
 
 global _start
-extern DdDfaSize, DdDfaTermMap, DdDfaLinkArr, DdDfaEdgeMap
 
-SECTION .data
+SECTION .rodata
 		;DFA automaton for string detection
-DdDfaSize:
+DdDfaSize:		
 		dd 12
 DdDfaTermMap:
 		dd 0,0,0,1,0,0,1,0,0,1,0,1 
@@ -16,89 +15,128 @@ DdDfaEdgeMap:
 		dd 4,2,4,4,4,6,4,4,9,4,4,9 
 		dd 7,7,3,7,7,7,10,7,7,3,7,7 
 
-DbMyPrnChr: 	db 0x00
+DbAhoMsg:	db 'detected term: ',0xA,0
+EqAhoMsgLen:	equ ($ - DbAhoMsg)
 
-SECTION .rodata
-DbMsgString:
-		db 'test str %d',0x0a,0x00
-EqMsgLength	equ $-DbMsgString
+DbAhoHexMap:	db '0123456789abcdef'
+
+SECTION .data
+DbAhoBuf:	db 0,0,0,0,0,0,0,0
+EqAhoBufLen:	equ ($ - DbAhoBuf)
+
+DbSrcStr:	db 'abacababca',0
 
 SECTION .text
+;===============
+;PROC main
+;===============
 _start:
-		mov rax, 0x01
-		mov rdi, 0x01
-		lea rsi, [DdDfaEdgeMap] 
-		mov rdx, [DdDfaSize]
-		shl rdx, 2
-		syscall
-
-		push 'a'
-		push DbMsgString
-		call my_printf
-		add rsp, 16
+		lea rax, [DbSrcStr]
+		call aho_parse_str
 
 		mov rax, 0x3c
-		mov rdi, 0x00
+		mov rdi, 0
 		syscall
 
 		ret
+;===============
+;ENDP main
+;===============
 
+;===============
+;PROC aho_parse_str
+;	Parses input string and prints all pattern matches
 ;===============
 ;LAYOUT:
-;	RAX - string address
-;	RSP - stack pointer
+;	RAX: string address
+;AFFECT:
+;	RDI, RSI, RAX, RBX, RCX
 ;===============
-my_printf:
-		;TODO: to push all the rest
-		push rbp		;save old rbp value
-		mov rbp, rsp		; move to parameters area
-		add rbp, 16		; skip call address and old rbp value
+aho_parse_str:
+		mov rdi, rax			;str_addr
 
-		call my_prn_str		;simply print format string
-		call my_prn_chr
+		mov rcx, 0
+		mov rsi, 0			;state_idx = 0
+.parse_loop:
+		xor rax, rax			;cleanup before calc idx
+		mov al, [rdi]			; = symb
+		sub al, 'a'
+		mul DWORD [DdDfaSize]		; *= DFA_SIZE
+		add rax, rsi			; += state_idx
+		shl rax, 2			; *= sizeof(DWORD)
 
-		pop rbp			;restore old rbp value
-		;TODO: to pop all the rest
+		mov esi, [DdDfaEdgeMap + rax]	;state_idx = edge_map[rdx]
+		mov ebx, esi
+.search_loop:
+		cmp DWORD [DdDfaTermMap + ebx*4], 0
+		je .search_end
 
-		ret
+		push rdi
+		push rsi
+		push rcx
+		mov rax, rcx
+		call aho_print_term
+		pop rcx
+		pop rsi
+		pop rdi
 
-my_prn_str:
-		;TODO: to push all the rest
-		mov rbx, [rbp]		;get format string address
-		add rbp, 8		; and skip it
+		mov ebx, [DdDfaLinkArr + ebx*4]	;
+		cmp ebx, 0
+		jne .search_loop		;proc next link
 
-		mov al, 0x00
-		mov rdi, rbx
-		mov rcx, 0x10000000	;max iteration count
-		repne scasb		; find string size
+.search_end:
+		inc rcx
+		inc rdi
+		cmp BYTE [rdi], 0
+		jne .parse_loop			;proc next state
 
-		mov rax, 0x01		;call sys_write
-		mov rdi, 0x01
-		mov rsi, rbx
-		mov rdx, 0x10000000
-		sub rdx, rcx
-		syscall
+		ret				;return
+;===============
+;ENDP aho_parse_str
+;===============
 
-		;TODO: to pop all the rest
-		ret
+;===============
+;PROC aho_print_term
+;	Prints end position of detected term
+;===============
+;LAYOUT:
+;	RAX: state number
+;AFFECT:
+;	RDI, RSI, RAX, RCX, RDX
+;===============
+aho_print_term:
+		push rax			;store index
 
-my_prn_chr:
-		;TODO: to push all the rest
-		mov rbx, [rbp]		;get format string address
-		add rbp, 8		; and skip it
+		mov rax, 0x1			;system write
+		mov rdi, 0x1			; to stdout
+		lea rsi, [DbAhoMsg]		;info str
+		mov rdx, EqAhoMsgLen		; about new term
+		syscall				;call system interrupt
 
-		mov [DbMyPrnChr], bl	;move lower byte value to output data
+		pop rax				;load index
 
-		mov rax, 0x01		;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnChr]
-		mov rdx, 0x1
-		syscall
+		xor rdx, rdx			;clear rdx to be equal dl
+		mov rcx, EqAhoBufLen - 1	;set max loop count
+.prn_loop:
+		mov dl, al			;dl = low byte
+		and dl, 0x0f			; = low digit
+		mov dl, [DbAhoHexMap + rdx]	; = symb[digit]
+		mov BYTE [DbAhoBuf + rcx], dl	;-> buffer
 
-		;TODO: to pop all the rest
-		ret
+		dec cx				;--cnt
 
-DdMyPrnU32:	dd 0x00000000
-my_prn_u32:
+		shr eax, 4			;num /= 16
+		cmp eax, 0			; check for end
+		jne .prn_loop			;proc next digit
 
-		ret
+		mov rax, 0x1			;system write
+		mov rdi, 0x1                    ; to stdout
+		lea rsi, [DbAhoMsg + rcx + 1]   ;off = buf + cnt + 1
+		mov rdx, EqAhoMsgLen            ;len = buf_len
+		sub rdx, rcx                    ; -= cnt
+		syscall				;call system interrupt
+
+		ret				;return
+;===============
+;ENDP aho_print_term
+;===============

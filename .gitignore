@@ -3,7 +3,7 @@ bin/
 obj/
 
 #aho
-Aho/aho_dfa.asm
+aho_dfa.asm
 
 # Prerequisites
 *.d

@@ -26,9 +26,11 @@ ASM_CFLAGS= -f ELF64 -g
 ASM_LFLAGS= 
 
 #C/C++ files
-SRCFILES= main.c $(SRCDIR)/asm_dfa.c $(SRCDIR)/aho_corasick.c
+SRCFILES= main.c \
+	  $(SRCDIR)/aho_context.c $(SRCDIR)/asm_dfa.c $(SRCDIR)/aho_corasick.c
 
-OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/asm_dfa.o $(OBJDIR)/aho_corasick.o
+OBJFILES= $(OBJDIR)/main.o \
+	  $(OBJDIR)/aho_context.o $(OBJDIR)/asm_dfa.o $(OBJDIR)/aho_corasick.o
 TARGET= $(BINDIR)/main
 
 #ASM files

@@ -1,6 +1,27 @@
 #include "aho_corasick.h"
 #include "asm_dfa.h"
 
+int testSAsmDfa()
+{
+    const char* str_arr[] = { "abc", "bab", "cab", "babca" };
+    const uint32_t str_cnt = sizeof(str_arr)/sizeof(str_arr[0]);
+
+    struct SAhoTree aho_tree = {};
+    aho_init_pref_tree(&aho_tree, str_arr, str_cnt);
+    aho_init_tree_link(&aho_tree);
+
+    struct SAsmDfa asm_dfa = {};
+    init_asm_dfa(&asm_dfa, &aho_tree);
+
+    aho_dump_tree(&aho_tree, stdout);
+    dump_asm_dfa(&asm_dfa, stdout);
+
+    delete_asm_dfa(&asm_dfa);
+    aho_delete_tree(&aho_tree);
+
+    return 0;
+}
+
 int init_asm_dfa(struct SAsmDfa* asm_dfa, const struct SAhoTree* aho_tree)
 {
     assert(aho_tree);
@@ -126,9 +147,9 @@ int dump_asm_dfa_state(const struct SAsmDfa* asm_dfa, uint32_t state_idx,
     assert(asm_dfa);
     assert(fout);
 
-    fprintf(fout, "[%u] = { T(%c), L(%u), ", 
+    fprintf(fout, "[%u] = { T(%u), L(%u), ", 
             state_idx, 
-            (asm_dfa->term_map[state_idx] ? '1' : '0'),
+            asm_dfa->term_map[state_idx],
             asm_dfa->link_arr[state_idx]);
     for (uint32_t symb_idx = 0u; symb_idx != AHO_SYMB_CNT; ++symb_idx)
     {
@@ -140,27 +161,6 @@ int dump_asm_dfa_state(const struct SAsmDfa* asm_dfa, uint32_t state_idx,
         }
     }
     fprintf(fout, "}\n");
-
-    return 0;
-}
-
-int testSAsmDfa()
-{
-    const char* str_arr[] = { "abc", "bab", "cab", "babca" };
-    const uint32_t str_cnt = sizeof(str_arr)/sizeof(str_arr[0]);
-
-    struct SAhoTree aho_tree = {};
-    aho_init_pref_tree(&aho_tree, str_arr, str_cnt);
-    aho_init_tree_link(&aho_tree);
-
-    struct SAsmDfa asm_dfa = {};
-    init_asm_dfa(&asm_dfa, &aho_tree);
-
-    aho_dump_tree(&aho_tree, stdout);
-    dump_asm_dfa(&asm_dfa, stdout);
-
-    delete_asm_dfa(&asm_dfa);
-    aho_delete_tree(&aho_tree);
 
     return 0;
 }

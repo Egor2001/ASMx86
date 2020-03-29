@@ -9,7 +9,8 @@ BITS 64
 ;===============
 ;include macros
 ;===============
-%include "dfa.asm"
+;%include "dfa.asm"
+%include "out.asm"
 ;===============
 
 global _start
@@ -24,6 +25,7 @@ SECTION .data
 DbAhoBuf:	db 0,0,0,0,0,0,0,0,0x0A
 EqAhoBufLen:	equ ($ - DbAhoBuf) - 1
 
+;DbSrcStr:	db 'aaaaaabc',0
 ;DbSrcStr:	db 'abacababca',0
 DbSrcStr:	db 'babcab',0
 
@@ -32,9 +34,6 @@ SECTION .text
 ;PROC main
 ;===============
 _start:
-		mov rax, 0xDED
-		call aho_print_term
-
 		lea rax, [DbSrcStr]
 		call aho_parse_str
 
@@ -49,7 +48,8 @@ _start:
 
 ;===============
 ;PROC aho_parse_str
-;	Parses input string and prints all pattern matches
+;	Parses input string 
+;	and prints all pattern matches
 ;===============
 ;LAYOUT:
 ;	RAX: string address
@@ -66,7 +66,6 @@ aho_parse_str:
 .parse_loop:
 		xor rax, rax			;cleanup before calc idx
 		mov al, [rdi]			; = symb
-		sub al, 'a'			;get index
 		mul DWORD [DdDfaSize]		; *= DFA_SIZE
 		add rax, rsi			; += state_idx
 		shl rax, 2			; *= sizeof(DWORD)
@@ -74,13 +73,16 @@ aho_parse_str:
 		mov esi, [DdDfaEdgeMap + rax]	;state_idx = edge_map[rdx]
 		mov ebx, esi
 .search_loop:
-		mov rdx, [DdDfaTermMap + ebx*4]	;rdx = is_term[ebx]
-		cmp rdx, 0			;check if term
+		;rdx upper part clears automatically
+		mov edx, [DdDfaTermMap + ebx*4]	;edx = is_term[ebx]
+		cmp edx, 0			;check if term
 		je .search_next			; and stop if not
 
 		multipush rdi, rsi, rcx		;store affected registers
 
-		mov rax, rcx			;pass current position
+		mov rdi, rcx			;pass current position
+		mov rsi, rdx			;pass matched string index
+		dec rsi				;because of indexation from 1
 		call aho_print_term		;print message
 
 		multipop rdi, rsi, rcx		;load affected registers
@@ -112,7 +114,8 @@ aho_parse_str:
 aho_print_term:
 		sysv_prologue			;sysV64 convention
 
-		push rax			;store index
+		mov rbx, rsi			;rbx = match string index
+		multipush rdi			;store params
 
 		mov rax, 0x1			;system write
 		mov rdi, 0x1			; to stdout
@@ -120,8 +123,15 @@ aho_print_term:
 		mov rdx, EqAhoMsgLen		; about new term
 		syscall				;call system interrupt
 
-		pop rax				;load index
+		mov rax, 0x1			;system write
+		mov rdi, 0x1			; to stdout
+		mov rsi, [DqAhoStrArr + rbx*8]	;matched str
+		mov edx, [DdAhoLenArr + rbx*4]	;matched str len
+		syscall				;call system interrupt
 
+		multipop rdi			;load params
+
+		mov rax, rdi			;rax = match position
 		xor rdx, rdx			;clear rdx to be equal dl
 		mov rcx, EqAhoBufLen - 1	;set max loop count
 .prn_loop:

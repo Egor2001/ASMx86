@@ -1,25 +1,70 @@
+#include "aho_context.h"
 #include "aho_corasick.h"
 #include "asm_dfa.h"
 
+int print_context_db_nasm(const struct SAhoContext* context, FILE* fout);
 int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout);
+
 int test_print(int argc, char** argv);
 int test_algo(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
+    //testSAhoContext();
     //testSAhoTree();
-    testSAsmDfa();
+    //testSAsmDfa();
 
-    //test_print(argc, argv);
+    test_print(argc, argv);
 
     //test_algo(argc, argv);
 
     return EXIT_SUCCESS;
 }
 
+int print_context_db_nasm(const struct SAhoContext* context, FILE* fout)
+{
+    assert(context);
+    assert(fout);
+
+    fprintf(fout, ";Context for string detection\n");
+
+    //print str_cnt
+    fprintf(fout, "DdAhoStrCnt:\n");
+    fprintf(fout, "\t\tdd %u\n", context->str_cnt);
+
+    for (uint32_t str_idx = 0u; str_idx != context->str_cnt; ++str_idx)
+    {
+        fprintf(fout, "DbAhoStr%u:\tdb '%s ',0xA,0\n", 
+                str_idx, context->str_arr[str_idx]);
+    }
+
+    //print str_arr
+    fprintf(fout, "DqAhoStrArr:\n");
+    fprintf(fout, "\t\tdq ");
+    for (uint32_t str_idx = 0u; str_idx != context->str_cnt; ++str_idx)
+    {
+        fprintf(fout, "DbAhoStr%u, ", str_idx);
+    }
+    fprintf(fout, "\n");
+
+    //print str_len_arr
+    fprintf(fout, "DdAhoLenArr:\n");
+    fprintf(fout, "\t\tdd ");
+    for (uint32_t str_idx = 0u; str_idx != context->str_cnt; ++str_idx)
+    {
+        fprintf(fout, "%lu, ", strlen(context->str_arr[str_idx]) + 1ul);
+    }
+    fprintf(fout, "\n");
+
+    return 0;
+}
+
 int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout)
 {
-    fprintf(fout, "\t\t;DFA automaton for string detection\n");
+    assert(asm_dfa);
+    assert(fout);
+
+    fprintf(fout, ";DFA automaton for string detection\n");
 
     //print state_cnt
     fprintf(fout, "DdDfaSize:\n");
@@ -86,6 +131,9 @@ int test_print(int argc, char** argv)
     const char* str_arr[] = { "abc", "bab", "cab", "babca" };
     const uint32_t str_cnt = sizeof(str_arr)/sizeof(str_arr[0]);
 
+    struct SAhoContext context = {};
+    aho_init_context(&context, str_arr, str_cnt);
+
     struct SAhoTree aho_tree = {};
     aho_init_pref_tree(&aho_tree, str_arr, str_cnt);
     aho_init_tree_link(&aho_tree);
@@ -93,10 +141,12 @@ int test_print(int argc, char** argv)
     struct SAsmDfa asm_dfa = {};
     init_asm_dfa(&asm_dfa, &aho_tree);
 
+    print_context_db_nasm(&context, fout);
     print_dfa_db_nasm(&asm_dfa, fout);
 
     delete_asm_dfa(&asm_dfa);
     aho_delete_tree(&aho_tree);
+    aho_delete_context(&context);
 
     fclose(fout);
     fout = NULL;

@@ -5,10 +5,10 @@
 int print_context_db_nasm(const struct SAhoContext* context, FILE* fout);
 int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout);
 
-int test_print(int argc, char** argv);
-int test_algo(int argc, char** argv);
+int test_print(int argc, const char** argv);
+int test_algo(int argc, const char** argv);
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
     test_print(argc, argv);
 
@@ -105,13 +105,15 @@ int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout)
     return 0;
 }
 
-int test_print(int argc, char** argv)
+int test_print(int argc, const char** argv)
 {
-    if (argc != 2)
+    if (argc <= 2)
     {
         printf("invalid parameters number\n");
-        printf("USAGE: %s FILENAME\n"
-               "FILENAME - name of file will be generated\n", 
+        printf("USAGE: %s FILENAME PATTERN\n"
+               "FILENAME - name of file will be generated\n"
+               "PATTERN ::= STR [PATTERN]\n"
+               "STR - string to search for\n", 
                argv[0]);
 
         return EXIT_FAILURE;
@@ -127,8 +129,10 @@ int test_print(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    const char* str_arr[] = { "abc", "bab", "cab", "babca" };
-    const uint32_t str_cnt = sizeof(str_arr)/sizeof(str_arr[0]);
+    //const char* str_arr[] = { "abc", "bab", "cab", "babca" };
+    //const uint32_t str_cnt = sizeof(str_arr)/sizeof(str_arr[0]);
+    const char** str_arr = argv + 2;
+    const uint32_t str_cnt = argc - 2;
 
     struct SAhoContext context = {};
     aho_init_context(&context, str_arr, str_cnt);
@@ -153,7 +157,7 @@ int test_print(int argc, char** argv)
     return EXIT_SUCCESS;
 }
 
-int test_algo(int argc, char** argv)
+int test_algo(int argc, const char** argv)
 {
     if (argc != 2)
     {

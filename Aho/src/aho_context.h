@@ -16,7 +16,7 @@ struct SAhoContext
 int testSAhoContext();
 
 int aho_init_context(struct SAhoContext* context,
-                     const char* str_arr[], uint32_t str_cnt);
+                     const char** str_arr, uint32_t str_cnt);
 
 int aho_delete_context(struct SAhoContext* context);
 

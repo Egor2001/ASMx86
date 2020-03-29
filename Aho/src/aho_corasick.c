@@ -16,7 +16,7 @@ int testSAhoTree()
 }
 
 int aho_init_pref_tree(struct SAhoTree* aho_tree, 
-                       const char* str_arr[], uint32_t str_cnt)
+                       const char** str_arr, uint32_t str_cnt)
 {
     assert(aho_tree);
     assert(str_arr);

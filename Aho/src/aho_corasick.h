@@ -7,11 +7,12 @@
 #include <string.h>
 #include <assert.h>
 
-//to uncomment to debug
+//uncomment to debug
 //#define NDEBUG
 
 #define AHO_SYMB_CNT 256
 
+//tree, used to build dfa
 struct SAhoTree
 {
     uint32_t state_cnt;                 //state count
@@ -26,10 +27,13 @@ struct SAhoTree
     uint32_t* edge_map[AHO_SYMB_CNT];   //next edge map
 };
 
+int testSAhoTree();
+
 int aho_init_pref_tree(struct SAhoTree* aho_tree, 
                        const char* str_arr[], uint32_t str_cnt);
 
-int aho_insert_new_str(struct SAhoTree* aho_tree, const char* str);
+int aho_insert_new_str(struct SAhoTree* aho_tree, 
+                       const char* str, uint32_t str_idx);
 int aho_init_tree_link(struct SAhoTree* aho_tree);
 
 int aho_delete_tree(struct SAhoTree* aho_tree);
@@ -39,7 +43,5 @@ int aho_dump_tree(struct SAhoTree* aho_tree,
 
 int aho_dump_tree_state(struct SAhoTree* aho_tree, uint32_t state_idx, 
                         FILE* fout);
-
-int testSAhoTree();
 
 #endif //AHO_AHO_CORASICK_H

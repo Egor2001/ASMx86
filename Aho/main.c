@@ -8,11 +8,11 @@ int test_algo(int argc, char** argv);
 int main(int argc, char** argv)
 {
     //testSAhoTree();
-    //testSAsmDfa();
+    testSAsmDfa();
 
     //test_print(argc, argv);
 
-    test_algo(argc, argv);
+    //test_algo(argc, argv);
 
     return EXIT_SUCCESS;
 }

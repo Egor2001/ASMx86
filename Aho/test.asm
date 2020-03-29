@@ -54,7 +54,7 @@ _start:
 ;LAYOUT:
 ;	RAX: string address
 ;AFFECT:
-;	RDI, RSI, RAX, RBX, RCX
+;	RDI, RSI, RAX, RCX, RDX
 ;===============
 aho_parse_str:
 		sysv_prologue			;sysV64 convention
@@ -74,8 +74,9 @@ aho_parse_str:
 		mov esi, [DdDfaEdgeMap + rax]	;state_idx = edge_map[rdx]
 		mov ebx, esi
 .search_loop:
-		cmp DWORD [DdDfaTermMap + ebx*4], 0	;check if term
-		je .search_next				; and stop if not
+		mov rdx, [DdDfaTermMap + ebx*4]	;rdx = is_term[ebx]
+		cmp rdx, 0			;check if term
+		je .search_next			; and stop if not
 
 		multipush rdi, rsi, rcx		;store affected registers
 
@@ -109,9 +110,7 @@ aho_parse_str:
 ;	RDI, RSI, RAX, RCX, RDX
 ;===============
 aho_print_term:
-		push rbp
-		mov rbp, rsp
-		push rbx
+		sysv_prologue			;sysV64 convention
 
 		push rax			;store index
 
@@ -144,9 +143,7 @@ aho_print_term:
 		sub rdx, rcx                    ; -= cnt
 		syscall				;call system interrupt
 
-		pop rbx
-		pop rbp
-
+		sysv_epilogue			;sysV64 convention
 		ret				;return
 ;===============
 ;ENDP aho_print_term

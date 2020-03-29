@@ -18,6 +18,9 @@ int testSAhoTree()
 int aho_init_pref_tree(struct SAhoTree* aho_tree, 
                        const char* str_arr[], uint32_t str_cnt)
 {
+    assert(aho_tree);
+    assert(str_arr);
+
     //init ::state_cnt
     aho_tree->state_cnt = 1u;
 
@@ -55,13 +58,14 @@ int aho_init_pref_tree(struct SAhoTree* aho_tree,
     //insertion
     for (uint32_t str_idx = 0u; str_idx != str_cnt; ++str_idx)
     {
-        aho_insert_new_str(aho_tree, str_arr[str_idx]);
+        aho_insert_new_str(aho_tree, str_arr[str_idx], str_idx);
     }
 
     return 0;
 }
 
-int aho_insert_new_str(struct SAhoTree* aho_tree, const char* str)
+int aho_insert_new_str(struct SAhoTree* aho_tree, 
+                       const char* str, uint32_t str_idx)
 {
     assert(aho_tree);
     assert(str);
@@ -87,7 +91,7 @@ int aho_insert_new_str(struct SAhoTree* aho_tree, const char* str)
     }
 
     //saving new state
-    ++aho_tree->dict_arr[cur_state];
+    aho_tree->dict_arr[cur_state] = str_idx + 1u;
 
     return 0;
 }

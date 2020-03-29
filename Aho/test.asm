@@ -1,36 +1,40 @@
 BITS 64
 
+;===============
+;include macros
+;===============
+%include "macro.asm"
+;===============
+
+;===============
+;include macros
+;===============
+%include "dfa.asm"
+;===============
+
 global _start
 
 SECTION .rodata
-		;DFA automaton for string detection
-DdDfaSize:		
-		dd 12
-DdDfaTermMap:
-		dd 0,0,0,1,0,0,1,0,0,1,0,1 
-DdDfaLinkArr:
-		dd 0,0,0,0,0,0,0,0,0,0,3,0 
-DdDfaEdgeMap:
-		dd 1,1,5,8,5,1,5,8,1,5,11,1 
-		dd 4,2,4,4,4,6,4,4,9,4,4,9 
-		dd 7,7,3,7,7,7,10,7,7,3,7,7 
-
 DbAhoMsg:	db 'detected term: ',0xA,0
 EqAhoMsgLen:	equ ($ - DbAhoMsg)
 
 DbAhoHexMap:	db '0123456789abcdef'
 
 SECTION .data
-DbAhoBuf:	db 0,0,0,0,0,0,0,0
-EqAhoBufLen:	equ ($ - DbAhoBuf)
+DbAhoBuf:	db 0,0,0,0,0,0,0,0,0x0A
+EqAhoBufLen:	equ ($ - DbAhoBuf) - 1
 
-DbSrcStr:	db 'abacababca',0
+;DbSrcStr:	db 'abacababca',0
+DbSrcStr:	db 'babcab',0
 
 SECTION .text
 ;===============
 ;PROC main
 ;===============
 _start:
+		mov rax, 0xDED
+		call aho_print_term
+
 		lea rax, [DbSrcStr]
 		call aho_parse_str
 
@@ -53,6 +57,8 @@ _start:
 ;	RDI, RSI, RAX, RBX, RCX
 ;===============
 aho_parse_str:
+		sysv_prologue			;sysV64 convention
+
 		mov rdi, rax			;str_addr
 
 		mov rcx, 0
@@ -60,7 +66,7 @@ aho_parse_str:
 .parse_loop:
 		xor rax, rax			;cleanup before calc idx
 		mov al, [rdi]			; = symb
-		sub al, 'a'
+		sub al, 'a'			;get index
 		mul DWORD [DdDfaSize]		; *= DFA_SIZE
 		add rax, rsi			; += state_idx
 		shl rax, 2			; *= sizeof(DWORD)
@@ -68,28 +74,26 @@ aho_parse_str:
 		mov esi, [DdDfaEdgeMap + rax]	;state_idx = edge_map[rdx]
 		mov ebx, esi
 .search_loop:
-		cmp DWORD [DdDfaTermMap + ebx*4], 0
-		je .search_end
+		cmp DWORD [DdDfaTermMap + ebx*4], 0	;check if term
+		je .search_next				; and stop if not
 
-		push rdi
-		push rsi
-		push rcx
-		mov rax, rcx
-		call aho_print_term
-		pop rcx
-		pop rsi
-		pop rdi
+		multipush rdi, rsi, rcx		;store affected registers
 
-		mov ebx, [DdDfaLinkArr + ebx*4]	;
-		cmp ebx, 0
-		jne .search_loop		;proc next link
+		mov rax, rcx			;pass current position
+		call aho_print_term		;print message
 
-.search_end:
-		inc rcx
-		inc rdi
-		cmp BYTE [rdi], 0
-		jne .parse_loop			;proc next state
+		multipop rdi, rsi, rcx		;load affected registers
+.search_next:
+		mov ebx, [DdDfaLinkArr + ebx*4]	;go to next link
+		cmp ebx, 0			; and check for link to 0
+		jne .search_loop		;proc next link or stop if 0
 
+		inc rcx				;++cnt
+		inc rdi				;++pos
+		cmp BYTE [rdi], 0		; and check for '\0' symb
+		jne .parse_loop			;proc next state or stop if 0
+
+		sysv_epilogue			;sysV64 convention
 		ret				;return
 ;===============
 ;ENDP aho_parse_str
@@ -105,6 +109,10 @@ aho_parse_str:
 ;	RDI, RSI, RAX, RCX, RDX
 ;===============
 aho_print_term:
+		push rbp
+		mov rbp, rsp
+		push rbx
+
 		push rax			;store index
 
 		mov rax, 0x1			;system write
@@ -131,10 +139,13 @@ aho_print_term:
 
 		mov rax, 0x1			;system write
 		mov rdi, 0x1                    ; to stdout
-		lea rsi, [DbAhoMsg + rcx + 1]   ;off = buf + cnt + 1
-		mov rdx, EqAhoMsgLen            ;len = buf_len
+		lea rsi, [DbAhoBuf + rcx + 1]	;off = buf + cnt + 1
+		mov rdx, EqAhoBufLen		;len = buf_len
 		sub rdx, rcx                    ; -= cnt
 		syscall				;call system interrupt
+
+		pop rbx
+		pop rbp
 
 		ret				;return
 ;===============

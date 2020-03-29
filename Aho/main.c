@@ -10,13 +10,12 @@ int test_algo(int argc, char** argv);
 
 int main(int argc, char** argv)
 {
-    //testSAhoContext();
-    //testSAhoTree();
-    //testSAsmDfa();
-
     test_print(argc, argv);
 
     //test_algo(argc, argv);
+    //testSAhoContext();
+    //testSAhoTree();
+    //testSAsmDfa();
 
     return EXIT_SUCCESS;
 }

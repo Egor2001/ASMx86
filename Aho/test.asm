@@ -1,47 +1,68 @@
+;===============
+;x86_64 configuration
+;===============
 BITS 64
-
-;===============
-;include macros
-;===============
-%include "macro.asm"
 ;===============
 
 ;===============
-;include macros
+;entry point
 ;===============
-;%include "dfa.asm"
-%include "out.asm"
-;===============
-
 global _start
+;===============
 
+;===============
+;read-only data
+;===============
 SECTION .rodata
-DbAhoMsg:	db 'detected term: ',0xA,0
-EqAhoMsgLen:	equ ($ - DbAhoMsg)
 
-DbAhoHexMap:	db '0123456789abcdef'
+%include "macro.asm"				;include macros
+%include "aho_dfa.asm"				;include generated dfa
 
+DbAhoMsg:	db 'detected term: ',0xA,0	;message to print on match
+EqAhoMsgLen:	equ ($ - DbAhoMsg)		;message len as offset diff
+
+DbAhoHexMap:	db '0123456789ABCDEF'		;byte - to hex convertion map
+;===============
+
+;===============
+;stack uninitialized data
+;===============
+SECTION .bss
+EqInputMax	equ 0x1000			;input buffer length
+DbInputBuf	resb EqInputMax			;input buffer
+;===============
+
+;===============
+;read/write data
+;===============
 SECTION .data
-DbAhoBuf:	db 0,0,0,0,0,0,0,0,0x0A
-EqAhoBufLen:	equ ($ - DbAhoBuf) - 1
+DbAhoBuf:	db 0,0,0,0,0,0,0,0,0,0,0x0A	;buffer to store hex string
+EqAhoBufLen:	equ ($ - DbAhoBuf) - 1		;buffer length
+;===============
 
-;DbSrcStr:	db 'aaaaaabc',0
-;DbSrcStr:	db 'abacababca',0
-DbSrcStr:	db 'babcab',0
-
+;===============
+;program code
+;===============
 SECTION .text
 ;===============
 ;PROC main
 ;===============
 _start:
-		lea rax, [DbSrcStr]
-		call aho_parse_str
+		;no, I won't optimize non-critical parts with xor!
+		mov rax, 0x0			;system read
+		mov rdi, 0x0			; from stdin
+		lea rsi, [DbInputBuf]		;to buffer
+		mov rdx, EqInputMax - 1		; max len = 4095
+		syscall				;call system interrupt
 
-		mov rax, 0x3c
-		mov rdi, 0
-		syscall
+		lea rdi, [DbInputBuf]		;pass input buffer
+		call aho_parse_str		;call parsing procedure
 
-		ret
+		mov rax, 0x3c			;exit
+		mov rdi, 0			; with code 0
+		syscall				;call system interrupt
+
+		ret				;terminal canary
 ;===============
 ;ENDP main
 ;===============
@@ -52,14 +73,12 @@ _start:
 ;	and prints all pattern matches
 ;===============
 ;LAYOUT:
-;	RAX: string address
+;	RDI: string address
 ;AFFECT:
 ;	RDI, RSI, RAX, RCX, RDX
 ;===============
 aho_parse_str:
 		sysv_prologue			;sysV64 convention
-
-		mov rdi, rax			;str_addr
 
 		mov rcx, 0
 		mov rsi, 0			;state_idx = 0
@@ -140,11 +159,15 @@ aho_print_term:
 		mov dl, [DbAhoHexMap + rdx]	; = symb[digit]
 		mov BYTE [DbAhoBuf + rcx], dl	;-> buffer
 
-		dec cx				;--cnt
+		dec rcx				;--cnt
 
 		shr eax, 4			;num /= 16
 		cmp eax, 0			; check for end
 		jne .prn_loop			;proc next digit
+
+		mov dx, '0x'			;dx = '0x'
+		sub rcx, 2			;adjust start pos
+		mov [DbAhoBuf + rcx + 1], dx	;add '0x' hex prefix
 
 		mov rax, 0x1			;system write
 		mov rdi, 0x1                    ; to stdout

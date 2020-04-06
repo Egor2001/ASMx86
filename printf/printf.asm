@@ -19,10 +19,12 @@ EqMaxCounter	equ 0x10000000
 
 SECTION .rodata
 DbMsgString:	db 'love',0
-DbFmtString:	db 'I %s %o %d%%%c%b',0xA,0
+DbWatString:	db 'wow',0
+DbFmtString:	db 'I %s %x %d%%%c%b%s',0xA,0
 
 SECTION .text
 _start:
+		push DbWatString
 		push QWORD 0xbeda
 		push QWORD '!'
 		push QWORD -100

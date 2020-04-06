@@ -4,6 +4,7 @@ obj/
 
 #aho
 aho_dfa.asm
+tags
 
 # Prerequisites
 *.d

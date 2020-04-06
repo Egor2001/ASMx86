@@ -1,12 +1,25 @@
 BITS 64
 
+;===============
+;ENTRY POINT
+;===============
 global _start
-extern my_printf, my_prn_str, my_prn_chr, my_prn_hex
 
+;===============
+;MAKE PRINTF EXTERN
+;===============
+extern my_printf
+
+;===============
+;STACK UNINITIALISED MEMORY
+;===============
 SECTION .bss
 EqMyPrnStrLen	equ 64
 DbMyPrnStr: 	resb EqMyPrnStrLen
 
+;===============
+;READONLY MEMORY
+;===============
 SECTION .rodata
 DbMyPrnHexMap:	db '0123456789ABCDEF'
 
@@ -17,30 +30,36 @@ DqMyPrnFncList:	dq my_prn_str, my_prn_chr, my_prn_oct, my_prn_hex, my_prn_dec, m
 
 EqMaxCounter	equ 0x10000000
 
+;===============
+;READONLY MEMORY (FOR USER SPACE)
+;===============
 SECTION .rodata
 DbMsgString:	db 'love',0
 DbWatString:	db 'wow',0
 DbFmtString:	db 'I %s %x %d%%%c%b%s',0xA,0
 
+;===============
+;CODE SECTION
+;===============
 SECTION .text
 _start:
-		push DbWatString
-		push QWORD 0xbeda
-		push QWORD '!'
-		push QWORD -100
-		push QWORD 3802
-		push DbMsgString
-		push DbFmtString
+		push QWORD DbWatString		;arg6
+		push QWORD 0xbeda		;arg5
+		push QWORD '!'			;arg4
+		push QWORD -100			;arg3
+		push QWORD 3802			;arg2
+		push QWORD DbMsgString		;arg1
+		push QWORD DbFmtString		;format string (arg0)
 
-		call my_printf
+		call my_printf			;call printf
 
-		add rsp, 24
+		add rsp, 7*8			;stack cleanup by the caller
 
-		mov rax, 0x3c
-		mov rdi, 0x00
-		syscall
+		mov rax, 0x3c			;exit
+		mov rdi, 0x00			;with code 0
+		syscall				;call system
 
-		ret
+		ret				;canary ret
 
 ;===============
 ;my_printf
@@ -54,71 +73,71 @@ _start:
 ;===============
 my_printf:
 		;TODO: to push all the rest
-		push rbp		;save old rbp value
-		mov rbp, rsp		; move to parameters area
-		add rbp, 16		; skip call address and old rbp value
+		push rbp			;save old rbp value
+		mov rbp, rsp			; move to parameters area
+		add rbp, 16			; skip call address and rbp
 
-		push rbx		;save old rbx value (Sys V)
+		push rbx			;save old rbx value (Sys V)
 
-		mov rbx, [rbp]		;get format string address
-		add rbp, 8		; and skip it
+		mov rbx, [rbp]			;get format string address
+		add rbp, 8			; and skip it
 
-		mov al, 0x00		;find '\0'
-		mov rdi, rbx		; in format string
-		mov rcx, EqMaxCounter	; set max iteration count
-		repne scasb		; find string size
+		mov al, 0x00			;find '\0'
+		mov rdi, rbx			; in format string
+		mov rcx, EqMaxCounter		; set max iteration count
+		repne scasb			; find string size
 		
-		mov rdx, EqMaxCounter	;calc format string size
-		sub rdx, rcx		; save format string size
+		mov rdx, EqMaxCounter		;calc format string size
+		sub rdx, rcx			; save format string size
 
-		mov rdi, rbx		;set current substring address
-		mov rcx, rdx		;set current substring size
+		mov rdi, rbx			;set current substring address
+		mov rcx, rdx			;set current substring size
 .printfLoop:
-		mov al, '%'		;search for '%'
-		repne scasb		; find substring size
+		mov al, '%'			;search for '%'
+		repne scasb			; find substring size
 
-		mov al, [rdi]		;save current character
+		mov al, [rdi]			;save current character
 
-		push rcx		;store affected registers
+		push rcx			;store affected registers
 		push rdi
 
-		push rax
+		mov r8, rax			;save rax
 
-		mov rdx, rdi		;set size
-		sub rdx, rbx		;calc current size
-		dec rdx			;skip % symb
-		lea rsi, [rbx]		;set current address
-		mov rdi, 0x01		;set output stream
-		mov rax, 0x01		;call sys_write
-		syscall			;write fmt string
+		mov rdx, rdi			;set size
+		sub rdx, rbx			;calc current size
+		dec rdx				;skip % symb
+		lea rsi, [rbx]			;set current address
+		mov rdi, 0x01			;set output stream
+		mov rax, 0x01			;call sys_write
+		syscall				;write fmt string
 
-		pop rax
+		mov rax, r8			;get rax
 
-		mov rcx, EqMyPrnFmtLen + 1
-		lea rdi, [DbMyPrnFmtList]
-		repne scasb
+		mov rcx, EqMyPrnFmtLen + 1	;pass format list len
+		lea rdi, [DbMyPrnFmtList]	;search for al in format list
+		repne scasb			;loop until hit
 
-		cmp rcx, 0x00
-		je .printfLoopEnd
+		cmp rcx, 0x00			;check if no such format
+		je .printfLoopEnd		;and skip call in this case
 		
-		mov rbx, EqMyPrnFmtLen
-		sub rbx, rcx
-		call QWORD [DqMyPrnFncList + rbx*8]
+		mov rbx, EqMyPrnFmtLen		;format index = format len
+		sub rbx, rcx			;format index -= rcx
+		call QWORD [DqMyPrnFncList + rbx*8]	;call format handler
 
 .printfLoopEnd:
-		pop rdi			;restore affected registers
-		inc rdi			;skip current char
-		mov rbx, rdi		;update substr start pos
+		pop rdi				;restore affected registers
+		inc rdi				;skip current char
+		mov rbx, rdi			;update substr start pos
 
-		pop rcx
-		cmp rcx, 0
+		pop rcx				;load rcx
+		cmp rcx, 0			;check for end of string
 
-		jne .printfLoop		;loop until reaching end of string
+		jne .printfLoop			;loop on format string
 
-		pop rbx			;restore old rbx value
-		pop rbp			;restore old rbp value
-					;TODO: to pop all the rest
-		ret
+		pop rbx				;restore old rbx value
+		pop rbp				;restore old rbp value
+		;TODO: to pop all the rest
+		ret				;return
 ;===============
 ;my_printf ENDS
 ;===============
@@ -135,24 +154,22 @@ my_printf:
 ;   	RAX, RBX, RCX, RDX
 ;===============
 my_prn_str:
-		;TODO: to push all the rest
-		mov rbx, [rbp]		;get string address
-		add rbp, 8		; and skip it
+		mov rbx, [rbp]			;get string address
+		add rbp, 8			; and skip it
 
-		mov al, 0x00
-		mov rdi, rbx
-		mov rcx, EqMaxCounter	;max iteration count
-		repne scasb		; find string size
+		mov al, 0x00			;search for end of string
+		mov rdi, rbx			; in argument string
+		mov rcx, EqMaxCounter		;max iteration count
+		repne scasb			; find string size
 
-		mov rax, 0x01		;call sys_write
-		mov rdi, 0x01
-		mov rsi, rbx
-		mov rdx, EqMaxCounter
-		sub rdx, rcx
-		syscall
+		mov rax, 0x01			;call sys_write
+		mov rdi, 0x01			; to stdout
+		mov rsi, rbx			;from parameter string
+		mov rdx, EqMaxCounter		;calculate length
+		sub rdx, rcx			; using rcx value
+		syscall				;call system
 
-		;TODO: to pop all the rest
-		ret
+		ret				;return 
 ;===============
 ;my_prn_str ENDS
 ;===============
@@ -169,115 +186,20 @@ my_prn_str:
 ;   	RAX, RBX, RCX, RDX
 ;===============
 my_prn_chr:
-		;TODO: to push all the rest
-		mov rax, [rbp]		;get character value
-		add rbp, 8		; and skip it
+		mov rax, [rbp]			;get character value
+		add rbp, 8			; and skip it
 
-		mov [DbMyPrnStr], al	;move lower byte value to output data
+		mov [DbMyPrnStr], al		;move lower byte to output
 
-		mov rax, 0x01		;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnStr]
-		mov rdx, 0x1
-		syscall
+		mov rax, 0x01			;call sys_write
+		mov rdi, 0x01			; to stdout
+		lea rsi, [DbMyPrnStr]		;buffer to write
+		mov rdx, 0x1			;length = 1
+		syscall				;call system
 
-		;TODO: to pop all the rest
-		ret
+		ret				;return
 ;===============
 ;my_prn_chr ENDS
-;===============
-
-;===============
-;my_prn_oct
-;===============
-;LAYOUT:
-;	[RBP] - char value
-;	RSP - stack pointer
-;AFFECT:
-;	RBP,
-;   	RDI, RSI,
-;   	RAX, RBX, RCX, RDX
-;===============
-my_prn_oct:
-		;TODO: to push all the rest
-		mov rax, [rbp]			;get 32-bit val
-		add rbp, 8			; and skip it
-
-		xor rdx, rdx
-		mov rcx, EqMyPrnStrLen - 1	;set current byte pos
-.prnLoop:
-		mov dl, al
-		and dl, 0x07
-		shr eax, 3
-
-		mov dl, [DbMyPrnHexMap + rdx]
-		mov [DbMyPrnStr + rcx], dl
-
-		dec rcx
-		cmp eax, 0
-		jne .prnLoop
-
-		dec rcx
-		mov BYTE [DbMyPrnStr + rcx + 1], '0'
-
-		mov rax, 0x01			;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnStr + rcx + 1]
-		mov rdx, EqMyPrnStrLen
-		sub rdx, rcx
-		syscall
-
-		;TODO: to pop all the rest
-		ret
-;===============
-;my_prn_oct ENDS
-;===============
-
-;===============
-;my_prn_hex
-;===============
-;LAYOUT:
-;	[RBP] - char value
-;	RSP - stack pointer
-;AFFECT:
-;	RBP,
-;   	RDI, RSI,
-;   	RAX, RBX, RCX, RDX
-;===============
-my_prn_hex:
-		;TODO: to push all the rest
-		mov rax, [rbp]			;get 32-bit val
-		add rbp, 8			; and skip it
-
-		xor rdx, rdx
-		mov rcx, EqMyPrnStrLen - 1	;set current byte pos
-.prnLoop:
-		mov dl, al
-		and dl, 0x0f
-		shr eax, 4
-
-		mov dl, [DbMyPrnHexMap + rdx]
-		mov [DbMyPrnStr + rcx], dl
-
-		dec rcx
-		cmp eax, 0
-		jne .prnLoop
-
-		dec rcx
-		dec rcx
-		mov WORD [DbMyPrnStr + rcx + 1], '0x'
-
-		mov rax, 0x01			;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnStr + rcx + 1]
-		mov rdx, EqMyPrnStrLen
-		sub rdx, rcx
-		syscall
-
-		;TODO: to pop all the rest
-		ret
-;===============
-;my_prn_hex ENDS
 ;===============
 
 ;===============
@@ -292,48 +214,99 @@ my_prn_hex:
 ;   	RAX, RBX, RCX, RDX
 ;===============
 my_prn_dec:
-		;TODO: to push all the rest
 		mov rax, [rbp]			;get 32-bit val
 		add rbp, 8			; and skip it
-		mov r8, rax
+		mov r8, rax			;save rax
 
-		cmp r8, 0
-		jge .skip_negation
+		cmp r8, 0			;compare to 0
+		jge .skip_negation		;check if num < 0
 
-		neg rax
+		neg rax				;negate if num < 0
 
 .skip_negation:
-		mov ebx, 10
+		mov ebx, 10			;set base
 		mov rcx, EqMyPrnStrLen - 1	;set current byte pos
 .prnLoop:
-		xor dl, dl
-		div ebx
+		xor dl, dl			;dl = 0
+		div ebx				;move to next digit
 
-		add dl, '0'
-		mov [DbMyPrnStr + rcx], dl
+		add dl, '0'			;set dl to digit character
+		mov [DbMyPrnStr + rcx], dl	;print digit
 
-		dec rcx
-		cmp eax, 0
-		jne .prnLoop
+		dec rcx				;shift left to next index
+		cmp eax, 0			;check for end of num
+		jne .prnLoop			;continue if num != 0
 
-		cmp r8, 0
-		jge .skip_minus
+		cmp r8, 0			;comare num to 0
+		jge .skip_minus			;print neg prefix if num < 0
 
-		dec rcx
-		mov BYTE [DbMyPrnStr + rcx + 1], '-'
+		dec rcx				;shift left
+		mov BYTE [DbMyPrnStr + rcx + 1], '-'	;print neg prefix
 
 .skip_minus:
-		mov rax, 0x01			;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnStr + rcx + 1]
-		mov rdx, EqMyPrnStrLen
-		sub rdx, rcx
-		syscall
+		mov rbx, rcx			;set prefix len
+		call my_prn_suff_to_out		;print buffer to stdout
 
-		;TODO: to pop all the rest
-		ret
+		ret				;return
 ;===============
 ;my_prn_dec ENDS
+;===============
+
+;===============
+;my_prn_hex
+;===============
+;LAYOUT:
+;	[RBP] - char value
+;	RSP - stack pointer
+;AFFECT:
+;	RBP,
+;   	RDI, RSI,
+;   	RAX, RBX, RCX, RDX
+;===============
+my_prn_hex:
+		mov rax, [rbp]			;get 32-bit val
+		add rbp, 8			; and skip it
+
+		mov cl, 4			;set log2 base = 4
+		call my_prn_pow2_to_str		;call pow2 print helper
+
+		dec rbx				;shift left
+		dec rbx				; 2 times
+		mov WORD [DbMyPrnStr + rbx + 1], '0x'	;print hex prefix
+
+		call my_prn_suff_to_out		;print buffer to stdout
+
+		ret
+;===============
+;my_prn_hex ENDS
+;===============
+
+;===============
+;my_prn_oct
+;===============
+;LAYOUT:
+;	[RBP] - char value
+;	RSP - stack pointer
+;AFFECT:
+;	RBP,
+;   	RDI, RSI,
+;   	RAX, RBX, RCX, RDX
+;===============
+my_prn_oct:
+		mov rax, [rbp]			;get 32-bit val
+		add rbp, 8			; and skip it
+
+		mov cl, 3			;set log2 base = 3
+		call my_prn_pow2_to_str		;call pow2 print helper
+
+		dec rbx				;move to next digit index
+		mov BYTE [DbMyPrnStr + rbx + 1], '0'	;print oct prefix
+
+		call my_prn_suff_to_out		;print buffer to stdout
+
+		ret				;return
+;===============
+;my_prn_oct ENDS
 ;===============
 
 ;===============
@@ -348,35 +321,18 @@ my_prn_dec:
 ;   	RAX, RBX, RCX, RDX
 ;===============
 my_prn_bin:
-		;TODO: to push all the rest
 		mov rax, [rbp]			;get 32-bit val
 		add rbp, 8			; and skip it
 
-		mov rcx, EqMyPrnStrLen - 1	;set current byte pos
-.prnLoop:
-		mov dl, al
-		and dl, 0x01
-		shr rax, 1
+		mov cl, 1			;set log2 base = 1
+		call my_prn_pow2_to_str		;call pow2 print helper
 
-		add dl, '0'
-		mov [DbMyPrnStr + rcx], dl
+		dec rbx				;shift left
+		dec rbx				; 2 times
+		mov WORD [DbMyPrnStr + rbx + 1], '0b'	;print bin prefix
 
-		dec rcx
-		cmp rax, 0
-		jne .prnLoop
+		call my_prn_suff_to_out		;print buffer to stdout
 
-		dec rcx
-		dec rcx
-		mov WORD [DbMyPrnStr + rcx + 1], '0b'
-
-		mov rax, 0x01			;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnStr + rcx + 1]
-		mov rdx, EqMyPrnStrLen
-		sub rdx, rcx
-		syscall
-
-		;TODO: to pop all the rest
 		ret
 ;===============
 ;my_prn_bin ENDS
@@ -393,15 +349,77 @@ my_prn_bin:
 ;   	RAX, RBX, RCX, RDX
 ;===============
 my_prn_pct:
-		mov BYTE [DbMyPrnStr], '%'
+		mov BYTE [DbMyPrnStr], '%'	;set byte
 
 		mov rax, 0x01			;call sys_write
-		mov rdi, 0x01
-		lea rsi, [DbMyPrnStr]
-		mov rdx, 1
-		syscall
+		mov rdi, 0x01			;to stdout
+		lea rsi, [DbMyPrnStr]		;from buffer
+		mov rdx, 1			;length = 1
+		syscall				;call system
 
-		ret
+		ret				;return
 ;===============
 ;my_prn_pct ENDS
+;===============
+
+;===============
+;my_prn_pow2_to_str
+;===============
+;LAYOUT:
+;	RAX - input number
+;	CL = log2 base
+;
+;RETURN:
+;	RBX - offset from DbMyPrnStr
+;
+;AFFECT:
+;	RAX, RBX, RCX, RDX
+;
+;===============
+my_prn_pow2_to_str:
+		mov ch, 0x1			;bh = 1
+		shl ch, cl			;bh = 2^bl
+		dec ch				;bh = 2^bl - 1
+
+		xor rdx, rdx			;rdx = 0
+		mov rbx, EqMyPrnStrLen - 1	;set current byte pos
+.prnLoop:
+		mov dl, al			;get lower byte
+		and dl, ch			;get digit
+		shr eax, cl			;shrink to next digit
+
+		mov dl, [DbMyPrnHexMap + rdx]	;get symbol representation
+		mov [DbMyPrnStr + rbx], dl	;print received character
+
+		dec rbx				;move to next digit index
+		cmp eax, 0			;check for end of number
+		jne .prnLoop			;continue if number != 0
+
+		ret				;return
+;===============
+;my_prn_pow2_to_str ENDS
+;===============
+
+;===============
+;my_prn_suff_to_out
+;===============
+;LAYOUT:
+;	RBX - prefix length
+;
+;AFFECT:
+;	RAX, RDX, RDI, RSI
+;
+;===============
+my_prn_suff_to_out:
+		mov rax, 0x01			;call sys_write
+		mov rdi, 0x01			;to stdout
+		lea rsi, [DbMyPrnStr + rbx + 1]	;from current digit position
+		mov rdx, EqMyPrnStrLen		;calculate length
+		sub rdx, rbx			;with rcx
+		syscall				;call system
+
+		ret				;return
+
+;===============
+;my_prn_suff_to_out ENDS
 ;===============

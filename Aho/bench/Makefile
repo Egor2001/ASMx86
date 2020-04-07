@@ -36,7 +36,7 @@ ASMTARGET= $(BINDIR)/asm_bench
 all: $(CTARGET) $(ASMTARGET)
 
 clean:
-	rm $(OBJDIR)/*.o
+	rm -f $(OBJDIR)/*.o
 
 # targets
 $(CTARGET): $(OBJFILE) $(C_OBJ)

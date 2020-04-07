@@ -1,6 +1,5 @@
 #include "src_str.h"
 
-//extern void (*find_pattern)(const char*);
 extern void find_pattern(const char*);
 
 int main()

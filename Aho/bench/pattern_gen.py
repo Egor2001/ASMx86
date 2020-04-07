@@ -14,9 +14,7 @@ def generate(symbols, lower, upper, count = 1):
 
 # console interface
 if __name__ == "__main__":
-	if len(sys.argv) != 5:
-		print("USAGE: ", sys.argv[0], " SYMBOLS LOWER UPPER COUNT")
-	else:
+	if len(sys.argv) == 5:
 		gen = generate(
 				symbols = sys.argv[1], 
 				lower = int(sys.argv[2]), 
@@ -26,3 +24,15 @@ if __name__ == "__main__":
 
 		for s in gen: 
 			print(s)
+	elif len(sys.argv) == 3:
+		length = int(sys.argv[2])
+		gen = generate(
+				symbols = sys.argv[1], 
+				lower = length, 
+				upper = length + 1,
+				count = 1
+				)
+
+		print('"', gen.__next__(), '"')
+	else:
+		print("USAGE: ", sys.argv[0], " SYMBOLS LOWER [UPPER COUNT]")

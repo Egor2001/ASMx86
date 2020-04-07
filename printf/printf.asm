@@ -8,7 +8,6 @@ global _start
 ;===============
 ;MAKE PRINTF EXTERN
 ;===============
-extern my_printf
 
 ;===============
 ;STACK UNINITIALISED MEMORY

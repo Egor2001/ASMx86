@@ -1,12 +1,13 @@
 #!/bin/bash
 
-GENFILE=aho_dfa.asm
+GENFILE_C=aho_dfa.h
+GENFILE_NASM=aho_dfa.asm
 GENCMD=./bin/main
 
-if [[ $# -lt 2 ]]; then
+if [[ $# -lt 3 ]]; then
     echo 'invalid parameters count'
     exit 1
 fi
 
-${GENCMD} ${GENFILE} $@
+${GENCMD} ${GENFILE_C} ${GENFILE_NASM} $@
 make asm

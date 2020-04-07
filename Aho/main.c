@@ -2,8 +2,11 @@
 #include "aho_corasick.h"
 #include "asm_dfa.h"
 
-int print_context_db_nasm(const struct SAhoContext* context, FILE* fout);
-int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout);
+int print_context_c(const struct SAhoContext* context, FILE* fout);
+int print_dfa_c(const struct SAsmDfa* asm_dfa, FILE* fout);
+
+int print_context_nasm(const struct SAhoContext* context, FILE* fout);
+int print_dfa_nasm(const struct SAsmDfa* asm_dfa, FILE* fout);
 
 int test_print(int argc, const char** argv);
 int test_algo(int argc, const char** argv);
@@ -20,7 +23,82 @@ int main(int argc, const char** argv)
     return EXIT_SUCCESS;
 }
 
-int print_context_db_nasm(const struct SAhoContext* context, FILE* fout)
+int print_context_c(const struct SAhoContext* context, FILE* fout)
+{
+    assert(context);
+    assert(fout);
+
+    fprintf(fout, "//Context for string detection\n");
+
+    //print str_cnt
+    fprintf(fout, "const unsigned int DdAhoStrCnt = %u;\n", context->str_cnt);
+
+    //print str_arr
+    fprintf(fout, "const char* DqAhoStrArr[] = {\n");
+    for (uint32_t str_idx = 0u; str_idx != context->str_cnt; ++str_idx)
+    {
+        fprintf(fout, "\t\"%s\",\n", context->str_arr[str_idx]);
+    }
+    fprintf(fout, "}; //DdAhoStrArr[]\n");
+
+    //print len_arr
+    fprintf(fout, "const unsigned int DdAhoLenArr[] = \n\t{ ");
+    for (uint32_t str_idx = 0u; str_idx != context->str_cnt; ++str_idx)
+    {
+        fprintf(fout, "%lu,", strlen(context->str_arr[str_idx]) + 1ul);
+    }
+    fprintf(fout, " }; //DdAhoLenArr[]\n");
+
+    return 0;
+}
+
+int print_dfa_c(const struct SAsmDfa* asm_dfa, FILE* fout)
+{
+    assert(asm_dfa);
+    assert(fout);
+
+    fprintf(fout, "//DFA automaton for string detection\n");
+
+    //print state_cnt
+    fprintf(fout, "const unsigned int DdDfaSize = %u;\n", asm_dfa->state_cnt);
+
+    //print term_map
+    fprintf(fout, "const unsigned int DdDfaTermMap[] = \n\t{ ");
+    for (uint32_t state_idx = 0u; 
+         state_idx != asm_dfa->state_cnt; ++state_idx)
+    {
+        fprintf(fout, "%u,", asm_dfa->term_map[state_idx]);
+    }
+    fprintf(fout, " }; //DdDfaTermMap[]\n");
+
+    //print link_arr
+    fprintf(fout, "const unsigned int DdDfaLinkArr[] = \n\t{ ");
+    for (uint32_t state_idx = 0u; 
+         state_idx != asm_dfa->state_cnt; ++state_idx)
+    {
+        fprintf(fout, "%u,", asm_dfa->link_arr[state_idx]);
+    }
+    fprintf(fout, " }; //DdDfaLinkArr[]\n");
+
+    //print edge_map
+    fprintf(fout, "const unsigned int DdDfaEdgeMap[][%u] = {\n", 
+            AHO_SYMB_CNT);
+    for (uint32_t symb_idx = 0u; symb_idx != AHO_SYMB_CNT; ++symb_idx)
+    {
+        fprintf(fout, "\t{ ");
+        for (uint32_t state_idx = 0u; 
+             state_idx != asm_dfa->state_cnt; ++state_idx)
+        {
+            fprintf(fout, "%u,", asm_dfa->edge_map[symb_idx][state_idx]);
+        }
+        fprintf(fout, " },\n");
+    }
+    fprintf(fout, "}; //DdDfaEdgeMap[][]\n");
+
+    return 0;
+}
+
+int print_context_nasm(const struct SAhoContext* context, FILE* fout)
 {
     assert(context);
     assert(fout);
@@ -58,7 +136,7 @@ int print_context_db_nasm(const struct SAhoContext* context, FILE* fout)
     return 0;
 }
 
-int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout)
+int print_dfa_nasm(const struct SAsmDfa* asm_dfa, FILE* fout)
 {
     assert(asm_dfa);
     assert(fout);
@@ -107,11 +185,12 @@ int print_dfa_db_nasm(const struct SAsmDfa* asm_dfa, FILE* fout)
 
 int test_print(int argc, const char** argv)
 {
-    if (argc <= 2)
+    if (argc <= 3)
     {
         printf("invalid parameters number\n");
-        printf("USAGE: %s FILENAME PATTERN\n"
-               "FILENAME - name of file will be generated\n"
+        printf("USAGE: %s C_FILE NASM_FILE PATTERN\n"
+               "C_FILE - name of c file will be generated\n"
+               "NASM_FILE - name of nasm file will be generated\n"
                "PATTERN ::= STR [PATTERN]\n"
                "STR - string to search for\n", 
                argv[0]);
@@ -119,20 +198,26 @@ int test_print(int argc, const char** argv)
         return EXIT_FAILURE;
     }
 
-    FILE* fout = fopen(argv[1], "w");
-
-    if (!fout)
+    FILE* fout_c = fopen(argv[1], "w");
+    if (!fout_c)
     {
-        perror("error opening file: ");
+        perror("error opening C file: ");
         printf("\n");
 
         return EXIT_FAILURE;
     }
 
-    //const char* str_arr[] = { "abc", "bab", "cab", "babca" };
-    //const uint32_t str_cnt = sizeof(str_arr)/sizeof(str_arr[0]);
-    const char** str_arr = argv + 2;
-    const uint32_t str_cnt = argc - 2;
+    FILE* fout_nasm = fopen(argv[2], "w");
+    if (!fout_nasm)
+    {
+        perror("error opening nasm file: ");
+        printf("\n");
+
+        return EXIT_FAILURE;
+    }
+
+    const char** str_arr = argv + 3;
+    const uint32_t str_cnt = argc - 3;
 
     struct SAhoContext context = {};
     aho_init_context(&context, str_arr, str_cnt);
@@ -144,15 +229,21 @@ int test_print(int argc, const char** argv)
     struct SAsmDfa asm_dfa = {};
     init_asm_dfa(&asm_dfa, &aho_tree);
 
-    print_context_db_nasm(&context, fout);
-    print_dfa_db_nasm(&asm_dfa, fout);
+    print_context_c(&context, fout_c);
+    print_dfa_c(&asm_dfa, fout_c);
+
+    print_context_nasm(&context, fout_nasm);
+    print_dfa_nasm(&asm_dfa, fout_nasm);
 
     delete_asm_dfa(&asm_dfa);
     aho_delete_tree(&aho_tree);
     aho_delete_context(&context);
 
-    fclose(fout);
-    fout = NULL;
+    fclose(fout_c);
+    fout_c = NULL;
+
+    fclose(fout_nasm);
+    fout_nasm = NULL;
 
     return EXIT_SUCCESS;
 }

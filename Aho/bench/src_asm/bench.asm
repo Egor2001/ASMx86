@@ -59,12 +59,12 @@ find_pattern:
 		shl rax, 2			; *= sizeof(DWORD)
 
 		lea r8, [rel DdDfaEdgeMap]
-		mov esi, [r8 + rax]	;state_idx = edge_map[rdx]
+		mov esi, [r8 + rax]		;state_idx = edge_map[rdx]
 		mov ebx, esi
 .search_loop:
 		;rdx upper part clears automatically
 		lea r8, [rel DdDfaTermMap]
-		mov edx, [r8 + rbx*4]	;edx = is_term[ebx]
+		mov edx, [r8 + rbx*4]		;edx = is_term[ebx]
 		cmp edx, 0			;check if term
 		je .search_next			; and stop if not
 
@@ -78,7 +78,7 @@ find_pattern:
 		multipop rdi, rsi, rcx		;load affected registers
 .search_next:
 		lea r8, [rel DdDfaLinkArr]
-		mov ebx, [r8 + rbx*4]	;go to next link
+		mov ebx, [r8 + rbx*4]		;go to next link
 		cmp ebx, 0			; and check for link to 0
 		jne .search_loop		;proc next link or stop if 0
 
@@ -117,9 +117,9 @@ detect_pattern:
 		mov rax, 0x1			;system write
 		mov rdi, 0x1			; to stdout
 		lea r9, [rel DqAhoStrArr]
-		mov rsi, [r9 + rbx*8]	;matched str
+		mov rsi, [r9 + rbx*8]		;matched str
 		lea r9, [rel DdAhoLenArr]
-		mov edx, [r9 + rbx*4]	;matched str len
+		mov edx, [r9 + rbx*4]		;matched str len
 		syscall				;call system interrupt
 
 		multipop rdi			;load params
@@ -131,9 +131,9 @@ detect_pattern:
 		mov dl, al			;dl = low byte
 		and dl, 0x0f			; = low digit
 		lea r9, [rel DbAhoHexMap]
-		mov dl, [r9 + rdx]	; = symb[digit]
+		mov dl, [r9 + rdx]		; = symb[digit]
 		lea r9, [rel DbAhoBuf]
-		mov BYTE [r9 + rcx], dl	;-> buffer
+		mov BYTE [r9 + rcx], dl		;-> buffer
 
 		dec rcx				;--cnt
 
@@ -144,12 +144,12 @@ detect_pattern:
 		mov dx, '0x'			;dx = '0x'
 		sub rcx, 2			;adjust start pos
 		lea r9, [rel DbAhoBuf]
-		mov [r9 + rcx + 1], dx	;add '0x' hex prefix
+		mov [r9 + rcx + 1], dx		;add '0x' hex prefix
 
 		mov rax, 0x1			;system write
 		mov rdi, 0x1                    ; to stdout
 		lea r9, [rel DbAhoBuf]
-		lea rsi, [r9 + rcx + 1]	;off = buf + cnt + 1
+		lea rsi, [r9 + rcx + 1]		;off = buf + cnt + 1
 		mov rdx, EqAhoBufLen		;len = buf_len
 		sub rdx, rcx                    ; -= cnt
 		syscall				;call system interrupt

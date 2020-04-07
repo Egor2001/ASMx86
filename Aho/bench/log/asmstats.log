@@ -1,0 +1,88 @@
+--------------------------------------------------------------------------------
+Profile data file 'callgrind.out.59552' (creator: callgrind-3.15.0)
+--------------------------------------------------------------------------------
+I1 cache: 
+D1 cache: 
+LL cache: 
+Timerange: Basic block 0 - 28155
+Trigger: Program termination
+Profiled target:  ./asm_bench (PID 59552, part 1)
+Events recorded:  Ir
+Events shown:     Ir
+Event sort order: Ir
+Thresholds:       99
+Include dirs:     
+User annotated:   
+Auto-annotation:  off
+
+--------------------------------------------------------------------------------
+Ir               
+--------------------------------------------------------------------------------
+143,617 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir               file:function
+--------------------------------------------------------------------------------
+29,370 (20.45%)  ???:_dl_relocate_object [/usr/lib/ld-2.31.so]
+23,568 (16.41%)  ???:do_lookup_x [/usr/lib/ld-2.31.so]
+21,642 (15.07%)  ???:0x0000000000001140 [/home/geome_try/MIPT/Programming/DED/ASMx86/Aho/bench/bin/asm_bench]
+19,953 (13.89%)  ???:_dl_lookup_symbol_x [/usr/lib/ld-2.31.so]
+18,601 (12.95%)  ???:__GI___tunables_init [/usr/lib/ld-2.31.so]
+ 5,339 ( 3.72%)  ???:strcmp [/usr/lib/libc-2.31.so]
+ 4,808 ( 3.35%)  ???:check_match [/usr/lib/ld-2.31.so]
+ 2,211 ( 1.54%)  ???:_dl_map_object_from_fd [/usr/lib/ld-2.31.so]
+ 1,547 ( 1.08%)  ???:_dl_check_map_versions [/usr/lib/ld-2.31.so]
+ 1,295 ( 0.90%)  ???:intel_check_word.isra.0 [/usr/lib/libc-2.31.so]
+ 1,161 ( 0.81%)  ???:dl_main [/usr/lib/ld-2.31.so]
+ 1,082 ( 0.75%)  ???:_dl_start [/usr/lib/ld-2.31.so]
+   917 ( 0.64%)  ???:_dl_map_object_deps [/usr/lib/ld-2.31.so]
+   799 ( 0.56%)  ???:_dl_cache_libcmp [/usr/lib/ld-2.31.so]
+   676 ( 0.47%)  ???:_dl_new_object [/usr/lib/ld-2.31.so]
+   588 ( 0.41%)  ???:_dl_important_hwcaps [/usr/lib/ld-2.31.so]
+   584 ( 0.41%)  ???:_dl_sysdep_start [/usr/lib/ld-2.31.so]
+   516 ( 0.36%)  ???:memset [/usr/lib/libc-2.31.so]
+   510 ( 0.36%)  ???:open_verify.constprop.0 [/usr/lib/ld-2.31.so]
+   501 ( 0.35%)  ???:malloc [/usr/lib/ld-2.31.so]
+   436 ( 0.30%)  ???:_dl_map_object [/usr/lib/ld-2.31.so]
+   415 ( 0.29%)  ???:_dl_name_match_p [/usr/lib/ld-2.31.so]
+   371 ( 0.26%)  ???:_dl_sort_maps [/usr/lib/ld-2.31.so]
+   341 ( 0.24%)  ???:_dl_load_cache_lookup [/usr/lib/ld-2.31.so]
+   324 ( 0.23%)  ???:_dl_allocate_tls_storage [/usr/lib/ld-2.31.so]
+   304 ( 0.21%)  ???:strlen [/usr/lib/ld-2.31.so]
+   276 ( 0.19%)  ???:_dl_next_ld_env_entry [/usr/lib/ld-2.31.so]
+   268 ( 0.19%)  ???:_dl_fini [/usr/lib/ld-2.31.so]
+   246 ( 0.17%)  ???:init_cacheinfo [/usr/lib/libc-2.31.so]
+   227 ( 0.16%)  ???:strcspn [/usr/lib/libc-2.31.so]
+   206 ( 0.14%)  ???:mmap [/usr/lib/ld-2.31.so]
+   181 ( 0.13%)  ???:index [/usr/lib/libc-2.31.so]
+   180 ( 0.13%)  ???:_dl_process_pt_note [/usr/lib/ld-2.31.so]
+   177 ( 0.12%)  ???:handle_intel.constprop.0 [/usr/lib/libc-2.31.so]
+   166 ( 0.12%)  ???:call_init.part.0 [/usr/lib/ld-2.31.so]
+   159 ( 0.11%)  ???:memcpy [/usr/lib/ld-2.31.so]
+   154 ( 0.11%)  ???:__tunable_get_val [/usr/lib/ld-2.31.so]
+   147 ( 0.10%)  ???:mempcpy [/usr/lib/libc-2.31.so]
+   118 ( 0.08%)  ???:__cxa_finalize [/usr/lib/libc-2.31.so]
+   114 ( 0.08%)  ???:_IO_flush_all_lockp [/usr/lib/libc-2.31.so]
+   109 ( 0.08%)  ???:_dl_add_to_namespace_list [/usr/lib/ld-2.31.so]
+   108 ( 0.08%)  ???:_dl_catch_exception [/usr/lib/ld-2.31.so]
+   104 ( 0.07%)  ???:_dl_init_paths [/usr/lib/ld-2.31.so]
+   102 ( 0.07%)  ???:__run_exit_handlers [/usr/lib/libc-2.31.so]
+    96 ( 0.07%)  ???:_dl_setup_hash [/usr/lib/ld-2.31.so]
+    93 ( 0.06%)  ???:_IO_cleanup [/usr/lib/libc-2.31.so]
+    93 ( 0.06%)  ???:get_common_indices.constprop.0 [/usr/lib/ld-2.31.so]
+    90 ( 0.06%)  ???:__sigsetjmp [/usr/lib/ld-2.31.so]
+    85 ( 0.06%)  ???:_dl_allocate_tls_init [/usr/lib/ld-2.31.so]
+    84 ( 0.06%)  ???:_dl_protect_relro [/usr/lib/ld-2.31.so]
+    78 ( 0.05%)  ???:_dl_init [/usr/lib/ld-2.31.so]
+    74 ( 0.05%)  ???:_dl_discover_osversion [/usr/lib/ld-2.31.so]
+    72 ( 0.05%)  ???:_dl_check_all_versions [/usr/lib/ld-2.31.so]
+    72 ( 0.05%)  ???:calloc [/usr/lib/ld-2.31.so]
+    70 ( 0.05%)  ???:init_tls [/usr/lib/ld-2.31.so]
+    68 ( 0.05%)  ???:_dl_determine_tlsoffset [/usr/lib/ld-2.31.so]
+    60 ( 0.04%)  ???:mprotect [/usr/lib/ld-2.31.so]
+    59 ( 0.04%)  ???:(below main) [/usr/lib/libc-2.31.so]
+    57 ( 0.04%)  ???:__open_nocancel [/usr/lib/ld-2.31.so]
+    55 ( 0.04%)  ???:handle_preload_list [/usr/lib/ld-2.31.so]
+    54 ( 0.04%)  ???:_dl_dst_count [/usr/lib/ld-2.31.so]
+    45 ( 0.03%)  ???:_dl_debug_initialize [/usr/lib/ld-2.31.so]
+

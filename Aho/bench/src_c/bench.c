@@ -14,9 +14,11 @@ void find_pattern(const char* str)
         {
             if (DdDfaTermMap[link_idx])
             {
+/*
                 printf("detected term:\n%s %#x\n", 
                        DqAhoStrArr[DdDfaTermMap[link_idx] - 1u],
                        (unsigned int) (it - str));
+*/
             }
 
             link_idx = DdDfaLinkArr[link_idx];

@@ -1,7 +1,7 @@
 CC= g++
 LD= $(CC)
 
-CFLAGS= -std=c++17 -O3
+CFLAGS= -std=c++17 -march=native -O3
 #CFLAGS= -std=c++17 -O0 -ggdb
 LFLAGS=
 

@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
 {
     //test_csv(argc, argv);
     test_csv_mmap(argc, argv);
+    printf("USE_CNT: HASH = %llu COMP = %llu\n", 
+           CHashTable::HASH_USE_CNT, CHashTable::COMP_USE_CNT);
 
     return 0;
 }

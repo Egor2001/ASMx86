@@ -10,26 +10,31 @@
 
 uint64_t hash_func_len(std::string_view str);
 uint64_t hash_func_sum(std::string_view str);
+uint64_t hash_func_stdcpp(std::string_view str);
 uint64_t hash_func_custom(std::string_view str);
 uint64_t hash_func_crc32(std::string_view str);
+uint64_t hash_func_intrin(std::string_view str);
+uint64_t hash_func_asm(std::string_view str);
 
 class CHashTable
 {
 public:
     constexpr static uint32_t NULL_IDX = static_cast<uint32_t>(-1);
-
     using data_type_ = std::string_view;
+
+    static uint64_t HASH_USE_CNT;
+    static uint64_t COMP_USE_CNT;
 
 private:
     static uint64_t hash_func_(const data_type_& str)
     {
-        return hash_func_crc32(str);
-        //return hash_func_custom(str);
-        //return std::hash<std::string_view>{}(str);//hash_func_custom(str);
+        ++HASH_USE_CNT;
+        return hash_func_intrin(str);
     }
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
+        ++COMP_USE_CNT;
         return !(lhs.compare(rhs));
     }
 

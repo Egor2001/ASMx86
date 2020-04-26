@@ -1,4 +1,8 @@
 #include "CHashTable.h"
+#include <nmmintrin.h>
+
+uint64_t CHashTable::HASH_USE_CNT = 0u;
+uint64_t CHashTable::COMP_USE_CNT = 0u;
 
 uint64_t hash_func_len(std::string_view str)
 {
@@ -12,6 +16,12 @@ uint64_t hash_func_sum(std::string_view str)
         hash += static_cast<uint64_t>(str[idx]);
 
     return hash;
+}
+
+uint64_t hash_func_stdcpp(std::string_view str)
+{
+    constexpr static std::hash<std::string_view> hash{};
+    return hash(str);
 }
 
 uint64_t hash_func_custom(std::string_view str)
@@ -33,16 +43,45 @@ uint64_t hash_func_custom(std::string_view str)
 uint64_t hash_func_crc32(std::string_view str)
 {
     //IEEE standard reverted (LSB, poly = 0xEDB88320)
-    constexpr static uint64_t byte_hash_arr[256] = { 
+    constexpr static uint32_t byte_hash_arr[256] = { 
         #include "CRC32_IEEE_REV.h"
     };
 
-    uint64_t hash = ~0LLU;
+    uint32_t hash = ~0U;
     for (char symb : str)
     {
-        uint8_t idx = hash ^ static_cast<uint64_t>(symb);
+        uint8_t idx = hash ^ static_cast<uint32_t>(symb);
         hash = byte_hash_arr[idx] ^ (hash >> 8u);
     }
+
+    return hash;
+}
+
+uint64_t hash_func_intrin(std::string_view str)
+{
+    uint32_t hash = 0u;
+    for (char symb : str)
+        hash = _mm_crc32_u8(hash, symb);
+
+    return hash;
+}
+
+uint64_t hash_func_asm(std::string_view str)
+{
+    uint32_t hash = 0u;
+    __asm__ (   
+        ".intel_syntax noprefix;"
+        "mov rsi, %1;"
+        "mov rcx, %2;"
+        "acc%=:"
+        "crc32b %0, BYTE [rsi];"
+        "inc rsi;"
+        "loop acc%=;"
+        ".att_syntax prefix;"
+        : "=rd" (hash)
+        : "r" (str.data()), "g" (str.size())
+        : "cc", "rsi", "rcx"
+    );
 
     return hash;
 }

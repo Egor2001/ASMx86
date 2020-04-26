@@ -74,7 +74,7 @@ find_pattern:
 		mov rsi, rdx			;pass matched string index
 		dec rsi				;because of indexation from 1
 		;TODO: TO COMMENT OUT WHEN TESTING!
-		call detect_pattern		;print message
+		;call detect_pattern		;print message
 
 		multipop rdi, rsi, rcx		;load affected registers
 .search_next:

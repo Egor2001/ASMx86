@@ -1,6 +1,8 @@
 #binary and object dirs
 bin/
 obj/
+log/
+out/
 
 #aho
 aho_dfa.asm

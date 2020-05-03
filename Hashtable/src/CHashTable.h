@@ -8,6 +8,8 @@
 
 #include <string_view>
 
+extern "C" uint64_t hash_func_extrn(const char* str, uint64_t len);
+
 uint64_t hash_func_len(std::string_view str);
 uint64_t hash_func_sum(std::string_view str);
 uint64_t hash_func_stdcpp(std::string_view str);
@@ -29,13 +31,34 @@ private:
     static uint64_t hash_func_(const data_type_& str)
     {
         ++HASH_USE_CNT;
-        return hash_func_intrin(str);
+        return hash_func_crc32(str);
+        //return hash_func_extrn(str.data(), str.size());
     }
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
         ++COMP_USE_CNT;
-        return !(lhs.compare(rhs));
+/*
+        uint64_t result = 0;
+        __asm__ (
+            ".intel_syntax noprefix\n\t"
+            "movdqu xmm1, [%[s2]]\n\t"
+            "movdqu xmm2, xmm1\n\t"
+            "movdqu xmm1, [%[s1]]\n\t"
+            "mov rax, %[l1]\n\t"
+            "mov rdx, %[l2]\n\t"
+            "pcmpestri xmm1, xmm2, 0x08\n\t"
+            "mov %[res], rcx\n\t"
+            ".att_syntax prefix\n\t"
+            : [res] "=r" (result)
+            : [s1] "r" (lhs.data()), [s2] "r" (rhs.data()),
+            [l1] "rm" (lhs.size()), [l2] "rm" (rhs.size())
+            : "cc"
+        );
+
+        printf("%llu ", result);
+*/
+        return !(lhs.compare(rhs))/* + result*/;
     }
 
 public:

@@ -1,42 +1,16 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-#define BLEND_BMP32_HEADER_SIZE 138
-#define BLEND_SSE_ALIGN 16
-
-union SBlendRGBA
-{
-    struct { uint8_t r, g, b, a; };
-    uint8_t rgba[4];
-};
-
-struct SBlendBMP32Header
-{
-    uint8_t data[BLEND_BMP32_HEADER_SIZE];
-};
-
-struct SBlendBMP32Storage
-{
-    uint32_t size;
-    uint8_t* data;
-};
+#include "bitmap.h"
 
 int blend_init_bmp32_storage(struct SBlendBMP32Storage* storage, size_t size)
 {
     assert(storage);
 
-    const size_t align = BLEND_SSE_ALIGN;
     storage->size = size - BLEND_BMP32_HEADER_SIZE;
-    storage->data = 
-        (uint8_t*) aligned_alloc(align, (storage->size + align - 1u) & ~align);
+
+    const size_t align = BLEND_SSE_ALIGN;
+    size_t alloc = (storage->size + align - 1u) & ~align;
+    storage->data = (uint8_t*) aligned_alloc(align, alloc);
+
+    return alloc;
 }
 
 int blend_delete_bmp32_storage(struct SBlendBMP32Storage* storage)
@@ -45,6 +19,9 @@ int blend_delete_bmp32_storage(struct SBlendBMP32Storage* storage)
 
     free(storage->data);
     storage->data = NULL;
+    storage->size = 0u;
+
+    return 0;
 }
 
 int blend_read_bmp32(struct SBlendBMP32Header* header, 
@@ -60,12 +37,6 @@ int blend_read_bmp32(struct SBlendBMP32Header* header,
     int storage_read = pread(fin, storage->data, storage->size, 
                              BLEND_BMP32_HEADER_SIZE);
     assert(storage_read == storage->size);
-
-/*
-    result = storage->size;
-    while (result)
-        result += fread(storage->data + size - result, result, 1, fin);
-*/
 
     return storage_read;
 }
@@ -84,46 +55,10 @@ int blend_write_bmp32(const struct SBlendBMP32Header* header,
                                BLEND_BMP32_HEADER_SIZE);
     assert(storage_write == storage->size);
 
-    /* ... */
-
     return storage_write;
 }
 
-int blend_background(union SBlendRGBA* dest, size_t pix_cnt)
-{
-    for (size_t pix = 0u; pix != pix_cnt; ++pix)
-    {
-        if (!dest[pix].a)
-        {
-            for (size_t i = 0u; i != 4u; ++i)
-                dest[pix].rgba[i] = 255u;
-        }
-        else
-        {
-            dest[pix].a = 255u;
-        }
-    }
-
-    return 0;
-}
-
-int blend_execute(union SBlendRGBA* dest, const union SBlendRGBA* src,
-                  size_t pix_cnt)
-{
-    for (size_t pix = 0u; pix != pix_cnt; ++pix)
-    {
-        dest[pix].r = 
-            (dest[pix].r*(255u - src[pix].a) + src[pix].r*src[pix].a)/255u;
-        dest[pix].g = 
-            (dest[pix].g*(255u - src[pix].a) + src[pix].g*src[pix].a)/255u;
-        dest[pix].b = 
-            (dest[pix].b*(255u - src[pix].a) + src[pix].b*src[pix].a)/255u;
-    }
-
-    return 0;
-}
-
-int main(int argc, char* argv[])
+int test_bitmap(int argc, char* argv[])
 {
     assert(argc == 4);
     int lower_file = open(argv[1], O_RDONLY); assert(lower_file != -1);
@@ -146,22 +81,9 @@ int main(int argc, char* argv[])
 
     blend_read_bmp32(&lower_header, &lower_storage, lower_file);
     blend_read_bmp32(&upper_header, &upper_storage, upper_file);
-/*
-    blend_background((union SBlendRGBA*) lower_storage.data,
-                     lower_storage.size/4u);
-*/
-    blend_execute((union SBlendRGBA*) lower_storage.data,
-                  (const union SBlendRGBA*) upper_storage.data,
-                  lower_storage.size/4u);
 
     blend_write_bmp32(&upper_header, &lower_storage, out_file);
-/*
-    printf("data size: %d\n", lower_storage.size);
 
-    int fb = open("/dev/fb0", O_RDWR);
-    write(fb, lower_storage.data, lower_storage.size);
-    close(fb);
-*/
     blend_delete_bmp32_storage(&upper_storage);
     blend_delete_bmp32_storage(&lower_storage);
 

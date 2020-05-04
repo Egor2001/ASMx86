@@ -21,60 +21,46 @@ int sse_blend_prepare(union SBlendRGBAQuad* dest, size_t pix_cnt)
 int sse_blend_execute(union SBlendRGBAQuad* dest, 
                       const union SBlendRGBAQuad* src, size_t pix_cnt)
 {
-    const __m128i lo_mask = 
-        _mm_set_epi16(0x07FF, 0x06FF, 0x05FF, 0x04FF, 
-                      0x03FF, 0x02FF, 0x01FF, 0x00FF);
-    const __m128i hi_mask = 
-        _mm_set_epi16(0x0FFF, 0x0EFF, 0x0DFF, 0x0CFF, 
-                      0x0BFF, 0x0AFF, 0x09FF, 0x08FF);
-
-    const __m128i al_lo_mask =
-        _mm_set_epi16(0x07FF, 0x07FF, 0x07FF, 0x07FF, 
-                      0x03FF, 0x03FF, 0x03FF, 0x03FF);
-    const __m128i al_hi_mask =
+    const __m128i alpha_mask =
         _mm_set_epi16(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF, 
-                      0x0BFF, 0x0BFF, 0x0BFF, 0x0BFF);
+                      0x07FF, 0x07FF, 0x07FF, 0x07FF);
 
-    const __m128i max_alpha = _mm_set1_epi16(0xFF00);
+    const __m128i pack_mask =
+        _mm_set_epi16(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 
+                      0x0F0D, 0x0B09, 0x0705, 0x0301);
 
-    uint16_t store_lo_buf[8u] = {};
-    uint16_t store_hi_buf[8u] = {};
+    const __m128i unit = _mm_set1_epi8(0xFF);
 
-    uint8_t load_byte_buf[16u] = {};
-
-    __m128i src_pair = {}, dest_pair = {}, alpha = {};
+    __m128i word_0 = {}, word_1 = {}, alpha = {};
+    __m128i src_pair = {}, dest_pair = {};
 
     for (size_t quad = 0u; quad != pix_cnt/4u; ++quad)
     {
-        alpha = _mm_shuffle_epi8(src[quad].xmm_quad, al_lo_mask);
-        src_pair = _mm_mulhi_epu16(alpha, 
-                _mm_shuffle_epi8(src[quad].xmm_quad, lo_mask));
+        src_pair = _mm_unpacklo_epi8(unit, src[quad].xmm_quad);
+        dest_pair = _mm_unpacklo_epi8(unit, dest[quad].xmm_quad);
 
-        alpha = _mm_sub_epi16(max_alpha, alpha);
-        dest_pair = _mm_mulhi_epu16(alpha, 
-                _mm_shuffle_epi8(dest[quad].xmm_quad, lo_mask));
+        alpha = _mm_shuffle_epi8(src_pair, alpha_mask);
+        src_pair = _mm_mulhi_epu16(src_pair, alpha);
 
-        _mm_store_si128((__m128i*) store_lo_buf, 
-                        _mm_add_epi16(dest_pair, src_pair));
+        alpha = _mm_sub_epi16(unit, alpha);
+        dest_pair = _mm_mulhi_epu16(dest_pair, alpha);
 
-        for (uint8_t word = 0u; word != 8u; ++word)
-            load_byte_buf[word + 0u] = store_lo_buf[word] / 0xFF;
+        word_0 = _mm_add_epi16(src_pair, dest_pair);
+        word_0 = _mm_shuffle_epi8(word_0, pack_mask);
 
-        alpha = _mm_shuffle_epi8(src[quad].xmm_quad, al_hi_mask);
-        src_pair = _mm_mulhi_epu16(alpha, 
-                _mm_shuffle_epi8(src[quad].xmm_quad, hi_mask));
+        src_pair = _mm_unpackhi_epi8(unit, src[quad].xmm_quad);
+        dest_pair = _mm_unpackhi_epi8(unit, dest[quad].xmm_quad);
 
-        alpha = _mm_sub_epi16(max_alpha, alpha);
-        dest_pair = _mm_mulhi_epu16(alpha, 
-                _mm_shuffle_epi8(dest[quad].xmm_quad, hi_mask));
+        alpha = _mm_shuffle_epi8(src_pair, alpha_mask);
+        src_pair = _mm_mulhi_epu16(src_pair, alpha);
 
-        _mm_store_si128((__m128i*) store_hi_buf, 
-                        _mm_add_epi16(dest_pair, src_pair));
+        alpha = _mm_sub_epi16(unit, alpha);
+        dest_pair = _mm_mulhi_epu16(dest_pair, alpha);
 
-        for (uint8_t word = 0u; word != 8u; ++word)
-            load_byte_buf[word + 8u] = store_hi_buf[word] / 0xFF;
+        word_1 = _mm_add_epi16(src_pair, dest_pair);
+        word_1 = _mm_shuffle_epi8(word_1, pack_mask);
 
-        dest[quad].xmm_quad = _mm_load_si128((__m128i*) load_byte_buf);
+        dest[quad].xmm_quad = _mm_unpacklo_epi64(word_0, word_1);
     }
 
     return 0;

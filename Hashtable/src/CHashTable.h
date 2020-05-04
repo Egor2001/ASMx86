@@ -24,20 +24,15 @@ public:
     constexpr static uint32_t NULL_IDX = static_cast<uint32_t>(-1);
     using data_type_ = std::string_view;
 
-    static uint64_t HASH_USE_CNT;
-    static uint64_t COMP_USE_CNT;
-
 private:
     static uint64_t hash_func_(const data_type_& str)
     {
-        ++HASH_USE_CNT;
-        return hash_func_crc32(str);
+        return hash_func_intrin(str);
         //return hash_func_extrn(str.data(), str.size());
     }
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
-        ++COMP_USE_CNT;
 /*
         uint64_t result = 0;
         __asm__ (

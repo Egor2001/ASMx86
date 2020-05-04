@@ -2,12 +2,7 @@
 #define SRC_NAIVE_H
 
 #include "bitmap.h"
-
-union SBlendRGBA
-{
-    struct { uint8_t r, g, b, a; };
-    uint8_t rgba[4];
-};
+#include "data_struct.h"
 
 int blend_prepare(union SBlendRGBA* dest, size_t pix_cnt);
 

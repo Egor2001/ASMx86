@@ -1,9 +1,6 @@
 #include "CHashTable.h"
 #include <nmmintrin.h>
 
-uint64_t CHashTable::HASH_USE_CNT = 0u;
-uint64_t CHashTable::COMP_USE_CNT = 0u;
-
 uint64_t hash_func_len(std::string_view str)
 {
     return str.size();

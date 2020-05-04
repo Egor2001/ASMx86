@@ -20,10 +20,7 @@ int test_csv_mmap(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
-    //test_csv(argc, argv);
     test_csv_mmap(argc, argv);
-    printf("USE_CNT: HASH = %llu COMP = %llu\n", 
-           CHashTable::HASH_USE_CNT, CHashTable::COMP_USE_CNT);
 
     return 0;
 }
@@ -105,19 +102,35 @@ int test_csv_mmap(int argc, char* argv[])
     pref_len = std::min(pref_len, str_view.length());
     str_view.remove_prefix(pref_len);
 
+    std::vector<std::string_view> search_vec;
+    search_vec.reserve(128*1024*1024);
+
     CHashTable hashtable;
     while (!str_view.empty())
     {
         pref_len = str_view.find_first_of(term_str);
         pref_len = std::min(pref_len, str_view.length());
 
-        hashtable.insert(str_view.substr(0u, pref_len));
+        std::string_view cur_view = str_view.substr(0u, pref_len);
+        search_vec.push_back(cur_view);
+
+        hashtable.insert(cur_view);
         str_view.remove_prefix(pref_len);
 
         pref_len = str_view.find_first_not_of(term_str);
         pref_len = std::min(pref_len, str_view.length());
         str_view.remove_prefix(pref_len);
     }
+
+    srand(time(0));
+    size_t mod = search_vec.size();
+    size_t res = 0u;
+    for (size_t i = 0u; i < 32*1024*1024; ++i)
+    {
+        size_t idx = rand()%mod;
+        res += hashtable.find(search_vec[idx]);
+    }
+    hashtable.insert(search_vec[res%mod]);
 
     hashtable.dump_to_csv(fout);
 

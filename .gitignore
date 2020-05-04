@@ -1,8 +1,11 @@
 #binary and object dirs
 bin/
 obj/
+
+#other user dirs
 log/
 out/
+img/
 
 #aho
 Aho/bench/src_str.h

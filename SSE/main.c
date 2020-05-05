@@ -5,7 +5,7 @@ int test_blend(int argc, char* argv[], bool sse = false, size_t iter = 1u);
 
 int main(int argc, char* argv[])
 {
-    test_blend(argc, argv, true, 10000);
+    test_blend(argc, argv, true, 1);
 
     return 0;
 }

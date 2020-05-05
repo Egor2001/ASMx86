@@ -22,8 +22,8 @@ int sse_blend_execute(union SBlendRGBAQuad* dest,
                       const union SBlendRGBAQuad* src, size_t pix_cnt)
 {
     const __m128i alpha_mask =
-        _mm_set_epi16(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF, 
-                      0x07FF, 0x07FF, 0x07FF, 0x07FF);
+        _mm_set_epi16(0xFFFF, 0x0FFF, 0x0FFF, 0x0FFF, 
+                      0xFFFF, 0x07FF, 0x07FF, 0x07FF);
 
     const __m128i pack_mask =
         _mm_set_epi16(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 

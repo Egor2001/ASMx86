@@ -1,6 +1,6 @@
 #include "naive.h"
 
-int blend_prepare(union SBlendRGBA* dest, size_t pix_cnt)
+int naive_blend_prepare(union SBlendRGBA* dest, size_t pix_cnt)
 {
     for (size_t pix = 0u; pix != pix_cnt; ++pix)
     {
@@ -18,8 +18,8 @@ int blend_prepare(union SBlendRGBA* dest, size_t pix_cnt)
     return 0;
 }
 
-int blend_execute(union SBlendRGBA* dest, const union SBlendRGBA* src,
-                  size_t pix_cnt)
+int naive_blend_execute(union SBlendRGBA* dest, const union SBlendRGBA* src,
+                        size_t pix_cnt)
 {
     for (size_t pix = 0u; pix != pix_cnt; ++pix)
     {
@@ -34,7 +34,7 @@ int blend_execute(union SBlendRGBA* dest, const union SBlendRGBA* src,
     return 0;
 }
 
-int test_naive(int argc, char* argv[])
+int test_naive_blend(int argc, char* argv[])
 {
     assert(argc == 4);
     int lower_file = open(argv[1], O_RDONLY); assert(lower_file != -1);
@@ -58,9 +58,9 @@ int test_naive(int argc, char* argv[])
     blend_read_bmp32(&lower_header, &lower_storage, lower_file);
     blend_read_bmp32(&upper_header, &upper_storage, upper_file);
 
-    blend_execute((union SBlendRGBA*) lower_storage.data,
-                  (const union SBlendRGBA*) upper_storage.data,
-                  lower_storage.size/4u);
+    naive_blend_execute((union SBlendRGBA*) lower_storage.data,
+                        (const union SBlendRGBA*) upper_storage.data,
+                        lower_storage.size/4u);
 
     blend_write_bmp32(&upper_header, &lower_storage, out_file);
 

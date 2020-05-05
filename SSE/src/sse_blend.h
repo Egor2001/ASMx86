@@ -8,7 +8,7 @@
 int sse_blend_prepare(union SBlendRGBAQuad* dest, size_t pix_cnt);
 
 int sse_blend_execute(union SBlendRGBAQuad* dest, 
-                      const union SBlendRGBA* src, size_t pix_cnt);
+                      const union SBlendRGBAQuad* src, size_t pix_cnt);
 
 int test_sse_blend(int argc, char* argv[]);
 

@@ -45,7 +45,8 @@ private:
             "movdqu xmm2, xmm1\n\t"             //xmm2 <- xmm1
             "movdqu xmm1, [%[s1]]\n\t"          //xmm2 <- str1
             "pcmpestri xmm1, xmm2, 0x0C\n\t"    //res = strcmp 16 bytes
-            "jnz loop_end\n\t"                      //res != 0 => break
+            "cmp rcx, 0\n\t"                    //res != 0  =>
+            "jne loop_end\n\t"                      //=> break
             "cmp %[l1], 16\n\t"                 //len1 <= 16 =>
             "jle loop_end\n\t"                      //=> break
             "cmp %[l2], 16\n\t"                 //len2 <= 16 =>

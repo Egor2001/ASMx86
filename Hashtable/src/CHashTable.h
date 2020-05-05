@@ -33,27 +33,38 @@ private:
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
-/*
+        //return !(lhs.compare(rhs));
+
         uint64_t result = 0;
         __asm__ (
-            ".intel_syntax noprefix\n\t"
-            "movdqu xmm1, [%[s2]]\n\t"
-            "movdqu xmm2, xmm1\n\t"
-            "movdqu xmm1, [%[s1]]\n\t"
-            "mov rax, %[l1]\n\t"
-            "mov rdx, %[l2]\n\t"
-            "pcmpestri xmm1, xmm2, 0x08\n\t"
-            "mov %[res], rcx\n\t"
-            ".att_syntax prefix\n\t"
+            ".intel_syntax noprefix\n\t"    //syntax = intel
+            "mov rax, %[l1]\n\t"            //rax <- len1
+            "mov rdx, %[l2]\n\t"            //rdx <- len2
+            "loop_start:\n\t"               //strcmp loop start
+            "movdqu xmm1, [%[s2]]\n\t"          //xmm1 <- str2
+            "movdqu xmm2, xmm1\n\t"             //xmm2 <- xmm1
+            "movdqu xmm1, [%[s1]]\n\t"          //xmm2 <- str1
+            "pcmpestri xmm1, xmm2, 0x0C\n\t"    //res = strcmp 16 bytes
+            "jnz loop_end\n\t"                      //res != 0 => break
+            "cmp %[l1], 16\n\t"                 //len1 <= 16 =>
+            "jle loop_end\n\t"                      //=> break
+            "cmp %[l2], 16\n\t"                 //len2 <= 16 =>
+            "jle loop_end\n\t"                      //=> break
+            "sub %[l1], 16\n\t"                 //len1 <- len1 - 16
+            "sub %[l2], 16\n\t"                 //len2 <- len2 - 16
+            "add %[s1], 16\n\t"                 //str1 <- str1 + 16
+            "add %[s2], 16\n\t"                 //str2 <- str2 + 16
+            "loop loop_start\n\t"               //continue
+            "loop_end:\n\t"                 //strcmp loop end
+            "mov %[res], rcx\n\t"           //result <- res
+            ".att_syntax prefix\n\t"        //syntax = AT&T
             : [res] "=r" (result)
             : [s1] "r" (lhs.data()), [s2] "r" (rhs.data()),
             [l1] "rm" (lhs.size()), [l2] "rm" (rhs.size())
-            : "cc"
+            : "cc", "rax", "rdx", "rcx", "xmm1", "xmm2"
         );
 
-        printf("%llu ", result);
-*/
-        return !(lhs.compare(rhs))/* + result*/;
+        return result;
     }
 
 public:

@@ -33,8 +33,8 @@ private:
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
-        return !(lhs.compare(rhs));
-/*
+        //return !(lhs.compare(rhs));
+
         uint64_t result = 0;
         __asm__ (
             ".intel_syntax noprefix\n\t"    //syntax = intel
@@ -69,7 +69,6 @@ private:
         );
 
         return result;
-*/
     }
 
 public:

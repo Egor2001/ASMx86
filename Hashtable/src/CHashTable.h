@@ -33,13 +33,16 @@ private:
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
-        //return !(lhs.compare(rhs));
-
+        return !(lhs.compare(rhs));
+/*
         uint64_t result = 0;
         __asm__ (
             ".intel_syntax noprefix\n\t"    //syntax = intel
             "mov rax, %[l1]\n\t"            //rax <- len1
             "mov rdx, %[l2]\n\t"            //rdx <- len2
+            "mov rcx, 0x100\n\t"            //res = 256
+            "cmp rax, rdx\n\t"              //len1 == len2 =>
+            "jne loop_end\n\t"                  //=> break
             "loop_start:\n\t"               //strcmp loop start
             "movdqu xmm1, [%[s2]]\n\t"          //xmm1 <- str2
             "movdqu xmm2, xmm1\n\t"             //xmm2 <- xmm1
@@ -66,6 +69,7 @@ private:
         );
 
         return result;
+*/
     }
 
 public:

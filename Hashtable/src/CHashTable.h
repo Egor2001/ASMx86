@@ -27,14 +27,14 @@ public:
 private:
     static uint64_t hash_func_(const data_type_& str)
     {
-        return hash_func_intrin(str);
+        return hash_func_crc32(str);
         //return hash_func_extrn(str.data(), str.size());
     }
 
     static uint64_t comp_pred_(const data_type_& lhs, const data_type_& rhs)
     {
-        //return !(lhs.compare(rhs));
-
+        return !(lhs.compare(rhs));
+/*
         uint64_t result = 0;
         __asm__ (
             ".intel_syntax noprefix\n\t"    //syntax = intel
@@ -47,7 +47,7 @@ private:
             "movdqu xmm1, [%[s2]]\n\t"          //xmm1 <- str2
             "movdqu xmm2, xmm1\n\t"             //xmm2 <- xmm1
             "movdqu xmm1, [%[s1]]\n\t"          //xmm2 <- str1
-            "pcmpestri xmm1, xmm2, 0x0C\n\t"    //res = strcmp 16 bytes
+            "pcmpestri xmm1, xmm2, 0x1C\n\t"    //res = strcmp 16 bytes
             "cmp rcx, 0\n\t"                    //res != 0  =>
             "jne loop_end\n\t"                      //=> break
             "cmp %[l1], 16\n\t"                 //len1 <= 16 =>
@@ -68,7 +68,8 @@ private:
             : "cc", "rax", "rdx", "rcx", "xmm1", "xmm2"
         );
 
-        return result;
+        return !result;
+*/
     }
 
 public:

@@ -2,7 +2,7 @@ CC= g++
 ASMC= nasm
 LD= $(CC)
 
-CFLAGS= -std=c++17 -march=native -O3 #CFLAGS= -std=c++17 -O0 -ggdb
+CFLAGS= -std=c++17 -march=native -O0 -ggdb #CFLAGS= -std=c++17 -O0 -ggdb
 ASMCFLAGS= -fELF64 -Isrc -o hash.o
 LFLAGS= -m64
 

@@ -1,5 +1,5 @@
 CC= gcc
-CFLAGS= -Isrc
+CFLAGS= -Isrc -std=c++17 -O2
 
 LD= $(CC)
 LFLAGS= 
@@ -8,8 +8,8 @@ SRCDIR= src
 OBJDIR= obj
 BINDIR= bin
 
-SRCFILES= main.c $(SRCDIR)/mirk.c
-OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/mirk.o
+SRCFILES= main.cpp $(SRCDIR)/context.cpp
+OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/context.o
 TARGET= $(BINDIR)/main
 
 TAGFILE= tags

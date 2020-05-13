@@ -1,0 +1,6 @@
+# DOS - specific binaries and so on
+*.COM
+*.EXE
+*.LST
+*.MAP
+*.OBJ

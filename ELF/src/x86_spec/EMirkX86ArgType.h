@@ -1,0 +1,14 @@
+#ifndef X86_SPEC_EMIRKX86ARGTYPE_H
+#define X86_SPEC_EMIRKX86ARGTYPE_H
+
+#define MIRK_X86_ARGTYPE(ARG_TYPE, ARG_CODE) \
+    MIRK_X86_ARG_##ARG_TYPE = ARG_CODE,
+
+enum EMirkX86ArgType
+{
+    #include "X86ArgTypes.h"
+};
+
+#undef MIRK_X86_ARGTYPE
+
+#endif //X86_SPEC_EMIRKX86ARGTYPE_H

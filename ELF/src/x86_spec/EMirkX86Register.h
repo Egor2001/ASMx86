@@ -1,0 +1,14 @@
+#ifndef X86_SPEC_EMIRKX86REGISTER_H
+#define X86_SPEC_EMIRKX86REGISTER_H
+
+#define MIRK_X86_REGISTER(REG_ENUM, REG_CODE, REG_NAME) \
+    MIRK_X86_REG_##REG_NAME = REG_CODE,
+
+enum EMirkX86Register
+{
+    #include "X86Registers.h"
+};
+
+#undef MIRK_X86_REGISTER
+
+#endif //X86_SPEC_EMIRKX86REGISTER_H

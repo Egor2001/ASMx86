@@ -7,5 +7,5 @@ start:		mov ah,02h
 		mov ax,4c00h
 		int 21h
 
-OutStr:		db 'duDos$',00h
+OutStr:		db 'test$',00h
 end		start

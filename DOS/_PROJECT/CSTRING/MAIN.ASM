@@ -2,8 +2,8 @@
 
 .data
 VIDEO_SEG       equ 0b800h
-src_str         db 'biba',10,13,'$'
-dest_str        db 'lupa',10,13,'$'
+src_str         db 'str1',10,13,'$'
+dest_str        db 'str2',10,13,'$'
 
 extrn wmemset : proc
 extrn memcpy : proc

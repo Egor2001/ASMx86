@@ -47,6 +47,6 @@ loop1:                                  ; output loop
 return:
                 int 21h                 ; hlt
 
-string          db 'fuck', 10, 13, '$'  ; crlf (?)
+string          db 'test', 10, 13, '$'  ; crlf (?)
 
 end             start

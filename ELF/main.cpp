@@ -66,8 +66,11 @@ public:
 
         printf("Elc cnt: %zu\n", result.size());
         for (const auto& data : result)
-            printf("Elc data: [%x %p %zu]\n", 
-                   data.instr, data.addr, data.len);
+        {
+            printf("Elc data: ");
+            dump_elc_data(data);
+            printf("[LEN %zu]\n", data.len);
+        }
 
         return std::move(result);
     }
@@ -84,10 +87,84 @@ public:
 
         printf("X86 cnt: %zu\n", result.size());
         for (const auto& data : result)
-            printf("X86 data: [%x %zu %zu %zu]\n", 
-                   data.instr, data.word_idx, data.dst_len, data.src_len);
+        {
+            printf("X86 data: ");
+            dump_x86_data(data);
+            printf("[IDX %#x] [LEN %zu]\n", 
+                    data.word_idx, data.dst_len + data.src_len);
+        }
 
         return std::move(result);
+    }
+
+    static void dump_elc_data(const CElcDisasm::SElcData& data)
+    {
+    #define MIRK_ELC_COMMAND(CMD_ENUM, CMD_CODE, CMD_NAME, CMD_DST, CMD_SRC) \
+        case MIRK_ELC_CMD_##CMD_ENUM: \
+            printf("[CMD %s] ", #CMD_NAME); \
+        break;
+
+        switch (data.instr.cmd)
+        {
+            #include "src/elc_spec/ElcCommands.h"
+            default: printf("[CMD ?] ");
+        }
+
+    #undef MIRK_ELC_COMMAND
+
+    #define MIRK_ELC_ARGTYPE(ARG_ENUM, ARG_CODE, ARG_NAME, ARG_SIZE) \
+        case MIRK_ELC_ARG_##ARG_ENUM: \
+            printf("[ARG %s] ", #ARG_NAME); \
+        break;
+
+        switch (data.instr.dst)
+        {
+            #include "src/elc_spec/ElcArgTypes.h"
+            default: printf("[ARG ?] ");
+        }
+
+        switch (data.instr.src)
+        {
+            #include "src/elc_spec/ElcArgTypes.h"
+            default: printf("[ARG ?] ");
+        }
+
+    #undef MIRK_ELC_ARGTYPE
+    }
+
+    static void dump_x86_data(const CGenElcX86::SX86Data& data)
+    {
+    #define MIRK_X86_COMMAND(CMD_ENUM, CMD_CODE, CMD_NAME) \
+        case MIRK_X86_CMD_##CMD_ENUM: \
+            printf("[CMD %s] ", #CMD_NAME); \
+        break;
+
+        switch (data.instr.cmd)
+        {
+            #include "src/x86_spec/X86Commands.h"
+            default: printf("[CMD ?] ");
+        }
+
+    #undef MIRK_X86_COMMAND
+
+    #define MIRK_X86_ARGTYPE(ARG_ENUM, ARG_CODE, ARG_NAME, ARG_SIZE) \
+        case MIRK_X86_ARG_##ARG_ENUM: \
+            printf("[ARG %s] ", #ARG_NAME); \
+        break;
+
+        switch (data.instr.dst)
+        {
+            #include "src/x86_spec/X86ArgTypes.h"
+            default: printf("[ARG ?] ");
+        }
+
+        switch (data.instr.src)
+        {
+            #include "src/x86_spec/X86ArgTypes.h"
+            default: printf("[ARG ?] ");
+        }
+
+    #undef MIRK_X86_ARGTYPE
     }
 
 private:

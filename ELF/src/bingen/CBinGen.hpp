@@ -48,6 +48,17 @@ public:
         uint8_t set_dis    (uint32_t dis);
         uint8_t set_imm    (uint32_t imm);
         uint8_t set_dis_imm(uint64_t val);
+
+        //x86 arg setters
+        void arg_imm            (const UMirkX86Word* addr);
+        void arg_dis            (const UMirkX86Word* addr);
+        void arg_reg_ext        (const UMirkX86Word* addr);
+        void arg_reg_reg        (const UMirkX86Word* addr);
+        void arg_r_m_reg        (const UMirkX86Word* addr);
+        void arg_r_m_mem_imm    (const UMirkX86Word* addr);
+        void arg_r_m_mem_reg    (const UMirkX86Word* addr);
+        void arg_r_m_mem_reg_imm(const UMirkX86Word* addr);
+        void arg_r_m_mem_reg_reg(const UMirkX86Word* addr);
     };
 
 //#pragma pack(pop, 1)
@@ -67,7 +78,6 @@ public:
     const std::vector<uint8_t>& text_vec() const noexcept { return text_vec_; }
 
 protected:
-
     void translate_x86(const SInstrData& data);
 
 #define MIRK_X86_COMMAND(CMD_ENUM, CMD_CODE, CMD_NAME) \

@@ -76,68 +76,68 @@ void CBinGen::translate_x86(const SInstrData& data)
 uint8_t CBinGen::SInstrData::set_rex(uint8_t rex)
 {
     assert(data);
-    this->mask |= MIRK_BIN_PREF_REX;
-    this->rex = 0x40 + (rex & 0xF);
+    i_mask |= MIRK_BIN_PREF_REX;
+    i_rex = 0x40 + (rex & 0xF);
 
-    return this->mask;
+    return i_mask;
 }
 
 // set 0FH prefix [7 0] (+flag_0fh)
 uint8_t CBinGen::SInstrData::set_0fh()
 {
     assert(data);
-    this->mask |= MIRK_BIN_PREF_0FH;
+    i_mask |= MIRK_BIN_PREF_0FH;
 
-    return this->mask;
+    return i_mask;
 }
 
 // set OPCODE
 uint8_t CBinGen::SInstrData::set_opc(uint8_t opc)
 {
     assert(data);
-    this->opc = opc;
+    i_opc = opc;
 
-    return this->mask;
+    return i_mask;
 }
 
 // add REG [2 0] to OPCODE
 uint8_t CBinGen::SInstrData::add_reg_opc(uint8_t reg_opc)
 {
     assert(data);
-    this->opc += reg_opc;
+    i_opc += reg_opc;
 
-    return this->mask;
+    return i_mask;
 }
 
 // set REG [5 3] of MOD_R_M (+flag_modrm)
 uint8_t CBinGen::SInstrData::set_reg_ext(uint8_t reg_ext)
 {
     assert(data);
-    this->mask |= MIRK_BIN_BYTE_MRM;
-    this->mrm = MIRK_MAKE_MRM(MIRK_GET_MRM_MOD(this->mrm), reg_ext, 
-                              MIRK_GET_MRM_R_M(this->mrm));
+    i_mask |= MIRK_BIN_BYTE_MRM;
+    i_mrm = MIRK_MAKE_MRM(MIRK_GET_MRM_MOD(i_mrm), reg_ext, 
+                              MIRK_GET_MRM_R_M(i_mrm));
 
-    return this->mask;
+    return i_mask;
 }
 
 // set MOD [7 6] & R_M [2 0] of MOD_R_M (+flag_modrm)
 uint8_t CBinGen::SInstrData::set_mod_r_m(uint8_t mod, uint8_t r_m)
 {
     assert(data);
-    this->mask |= MIRK_BIN_BYTE_MRM;
-    this->mrm = MIRK_MAKE_MRM(mod, MIRK_GET_MRM_REG(this->mrm), r_m);
+    i_mask |= MIRK_BIN_BYTE_MRM;
+    i_mrm = MIRK_MAKE_MRM(mod, MIRK_GET_MRM_REG(i_mrm), r_m);
 
-    return this->mask;
+    return i_mask;
 }
 
 // set MOD [7 6] & R_M [2 0] of MOD_R_M (+flag_modrm)
 uint8_t CBinGen::SInstrData::set_mrm_d32()
 {
     assert(data);
-    this->mask |= MIRK_BIN_BYTE_MRM;
-    this->mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(this->mrm), 0b101);
+    i_mask |= MIRK_BIN_BYTE_MRM;
+    i_mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(i_mrm), 0b101);
 
-    return this->mask;
+    return i_mask;
 }
 
 // set MOD [7 6] & R_M [2 0] of MOD_R_M & SIB[7 0] (+flag_modrm) (+flag_sib)
@@ -145,167 +145,220 @@ uint8_t CBinGen::SInstrData::set_mrm_sib(uint8_t scale, uint8_t index,
                                          uint8_t base)
 {
     assert(data);
-    this->mask |= MIRK_BIN_BYTE_MRM | MIRK_BIN_BYTE_SIB;
-    this->mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(this->mrm), 0b100);
-    this->sib = MIRK_MAKE_SIB(scale, index, base);
+    i_mask |= MIRK_BIN_BYTE_MRM | MIRK_BIN_BYTE_SIB;
+    i_mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(i_mrm), 0b100);
+    i_sib = MIRK_MAKE_SIB(scale, index, base);
 
-    return this->mask;
+    return i_mask;
 }
 
 // set DISPLACEMENT [31 0] (+flag_dis)
 uint8_t CBinGen::SInstrData::set_dis(uint32_t dis)
 {
     assert(data);
-    this->mask |= MIRK_BIN_DATA_DIS;
-    this->dis = dis;
+    i_mask |= MIRK_BIN_DATA_DIS;
+    i_dis = dis;
 
-    return this->mask;
+    return i_mask;
 }
 
 // set IMMEDIATE [31 0] (+flag_imm)
 uint8_t CBinGen::SInstrData::set_imm(uint32_t imm)
 {
     assert(data);
-    this->mask |= MIRK_BIN_DATA_IMM;
-    this->imm = imm;
+    i_mask |= MIRK_BIN_DATA_IMM;
+    i_imm = imm;
 
-    return this->mask;
+    return i_mask;
 }
 
 // set DISPLACEMENT [31 0] & IMMEDIATE [31 0] (+flag_dis) (+flag_imm)
 uint8_t CBinGen::SInstrData::set_imm_dis(uint64_t val)
 {
     assert(data);
-    this->mask |= MIRK_BIN_DATA_DIS | MIRK_BIN_DATA_IMM;
-    this->dis = static_cast<uint32_t>(val);
-    this->imm = static_cast<uint32_t>(val >> 32u);
+    i_mask |= MIRK_BIN_DATA_DIS | MIRK_BIN_DATA_IMM;
+    i_dis = static_cast<uint32_t>(val);
+    i_imm = static_cast<uint32_t>(val >> 32u);
 
-    return this->mask;
+    return i_mask;
 }
 
 //---------------------------------------- 
-/*
-SInstrData CBinGen::make_instr_i32(uint8_t opc, uint32_t imm)
-SInstrData CBinGen::make_instr_i64(uint8_t opc, uint64_t imm)
-SInstrData CBinGen::make_instr_reg(uint8_t opc, )
-SInstrData CBinGen::make_instr_mem(uint8_t opc, )
-SInstrData CBinGen::make_instr_reg_imm(uint8_t opc, )
-SInstrData CBinGen::make_instr_reg_mem(uint8_t opc, )
-SInstrData CBinGen::make_instr_mem_imm(uint8_t opc, )
-SInstrData CBinGen::make_instr_mem_reg(uint8_t opc, )
+
+void CBinGen::SInstrData::arg_imm(const UMirkX86Word* addr)
+{
+    data.set_imm(addr[0].as_imm);
+}
+
+void CBinGen::SInstrData::arg_dis(const UMirkX86Word* addr)
+{
+    data.set_dis(addr[0].as_imm);
+}
+
+void CBinGen::SInstrData::arg_opc_reg(const UMirkX86Word* addr)
+{
+    data.add_reg_opc(addr[0].as_reg & 0x7);
+}
+
+void CBinGen::SInstrData::arg_reg_ext(const UMirkX86Word* addr)
+{
+    data.set_reg_ext(addr[0].as_imm & 0x7);
+}
+
+void CBinGen::SInstrData::arg_reg_reg(const UMirkX86Word* addr)
+{
+    data.set_reg_ext(addr[0].as_reg & 0x7);
+}
+
+void CBinGen::SInstrData::arg_r_m_reg(const UMirkX86Word* addr)
+{
+    data.set_mod_r_m(0b11, addr[0].as_reg & 0x7);
+}
+
+void CBinGen::SInstrData::arg_r_m_mem_imm(const UMirkX86Word* addr)
+{
+    data.set_mrm_d32();
+    data.set_dis(src_addr[0].as_imm);
+}
+
+void CBinGen::SInstrData::arg_r_m_mem_reg(const UMirkX86Word* addr)
+{
+    data.set_mod_r_m(0b11, addr[0].as_reg & 0x7);
+}
+
+void CBinGen::SInstrData::arg_r_m_mem_reg_imm(const UMirkX86Word* addr)
+{
+    data.set_mod_r_m(0b10, addr[0].as_reg & 0x7);
+    data.set_dis(addr[1].as_imm);
+}
+
+void CBinGen::SInstrData::arg_r_m_mem_reg_reg(const UMirkX86Word* addr)
+{
+    data.set_mrm_sib(0b00, addr[1].as_reg & 0x7, addr[0].as_reg & 0x7);
+}
 
 void 
 CBinGen::
 translate_cmd_add(EMirkX86ArgType dst, const UMirkX86Word* dst_addr, 
                   EMirkX86ArgType src, const UMirkX86Word* src_addr)
 {
-    uint8_t mask = 0u;
     SInstrData data = {};
 
     switch (dst)
     {
-        case MIRK_X86_ARG_REG:
-            
-            break;
+    // immediate
+        case MIRK_X86_ARG_IMM: 
+            data.set_rex(0b100);
+            data.set_opc(0x05);
+            data.arg_imm(dst_addr); 
+        break;
 
-        case MIRK_X86_ARG_MEM_IMM:
-        case MIRK_X86_ARG_MEM_REG:
-        case MIRK_X86_ARG_MEM_REG_IMM:
-        case MIRK_X86_ARG_MEM_REG_REG:
+    // register
+        case MIRK_X86_ARG_REG: 
+            data.set_rex(0b100);
 
-            break;
+            switch (src)
+            {
+            // immediate
+                case MIRK_X86_ARG_IMM: 
+                    data.set_opc(0x81);
+                    data.arg_r_m_reg(dst_addr); 
+                    data.arg_imm(src_addr); 
+                break;
 
+            // register
+                case MIRK_X86_ARG_REG: 
+                    data.set_opc(0x03);
+                    data.arg_reg_reg(dst_addr); 
+                    data.arg_r_m_reg(src_addr); 
+                break;
+
+            // memory
+                case MIRK_X86_ARG_MEM_IMM: 
+                    data.set_opc(0x03);
+                    data.arg_reg_reg(dst_addr); 
+                    data.arg_r_m_mem_imm(src_addr); 
+                break;
+
+                case MIRK_X86_ARG_MEM_REG: 
+                    data.set_opc(0x03);
+                    data.arg_reg_reg(dst_addr); 
+                    data.arg_r_m_mem_reg(src_addr); 
+                break;
+
+                case MIRK_X86_ARG_MEM_REG_IMM: 
+                    data.set_opc(0x03);
+                    data.arg_reg_reg(dst_addr); 
+                    data.arg_r_m_mem_reg_imm(src_addr); 
+                break;
+
+                case MIRK_X86_ARG_MEM_REG_REG: 
+                    data.set_opc(0x03);
+                    data.arg_reg_reg(dst_addr); 
+                    data.arg_r_m_mem_reg_reg(src_addr); 
+                break;
+
+            // error
+                default:
+                    throw;
+                break;
+            }
+        break;
+
+    // memory
+        case MIRK_X86_ARG_MEM_IMM: 
+        {
+            data.set_(dst_addr[0].as_reg & 0x7);
+        }
+        goto DST_ARG_MEM_;
+
+        case MIRK_X86_ARG_MEM_REG: 
+        {
+            data.set_reg_ext(dst_addr[0].as_reg & 0x7);
+        }
+        goto DST_ARG_MEM_;
+
+        case MIRK_X86_ARG_MEM_REG_IMM: 
+        {
+            data.set_reg_ext(dst_addr[0].as_reg & 0x7);
+        }
+        goto DST_ARG_MEM_;
+
+        case MIRK_X86_ARG_MEM_REG_REG: 
+            data.set_opc(0x03);
+            data.arg_reg_reg(dst_addr); 
+            data.arg_r_m_mem_reg_reg(src_addr); 
+        goto DST_ARG_MEM_;
+
+        DST_ARG_MEM_:
+        {
+            switch (src)
+            {
+            // register
+                case MIRK_X86_ARG_REG: 
+                {
+                    data.set_rex(0b100);
+                }
+                break;
+
+            // error
+                default:
+                {
+                    throw;
+                }
+                break;
+            }
+
+            data.set_rex(0b100);
+        }
+        break;
+
+    // error
         default:
             throw;
-            break;
-    }
-
-    if (src_data.type == MIRK_BIN_REG)
-    {
-        mask |= MIRK_BIN_PREF_REX;
-        data.cmd = 0x01; // add r/m64 to r64
-        data.rex = 0x48; // Wxxx
-
-        if (dst_data.type == MIRK_BIN_REG)
-        {
-            mask |= MIRK_BIN_BYTE_MRM;
-            data.mrm = MIRK_MAKE_MRM(0b11, src_data.as_reg, dst_data.as_reg);
-        }
-        else if (dst_data.type == MIRK_BIN_MEM)
-        {
-            if (dst == MIRK_X86_ARG_MEM_IMM) 
-            {
-                mask |= MIRK_BIN_BYTE_MRM 
-                      | MIRK_BIN_DATA_IMM;
-
-                data.mrm = MIRK_MAKE_MRM(0b00, src_data.lhs, 0b101);
-                data.imm = dst_data.lhs;
-            }
-            else if (dst == MIRK_X86_ARG_MEM_REG)
-            {
-                mask |= MIRK_BIN_BYTE_MRM;
-
-                data.mrm = MIRK_MAKE_MRM(0b00, src_data.lhs, dst_data.lhs);
-            }
-            else if (dst == MIRK_X86_ARG_MEM_REG_IMM) 
-            {
-                mask |= MIRK_BIN_BYTE_MRM 
-                      | MIRK_BIN_BYTE_SIB 
-                      | MIRK_BIN_BYTE_IMM;
-
-                data.mrm = MIRK_MAKE_MRM(0b00, src_data.lhs, 0b101);
-                data.sib = MIRK_MAKE_SIB(0b00, src_data.lhs, dst_data.lhs);
-                data.imm = dst_data.rhs;
-            }
-            else if (dst == MIRK_X86_ARG_MEM_REG_REG)
-            {
-                mask |= MIRK_BIN_BYTE_MRM 
-                      | MIRK_BIN_BYTE_SIB 
-                      | MIRK_BIN_BYTE_IMM;
-
-                data.mrm = MIRK_MAKE_MRM(0b00, src_data.lhs, dst_data.lhs);
-            }
-            else
-            {
-            }
-        }
-        else
-        {
-        }
-    }
-    else if (src_data.type == MIRK_BIN_MEM)
-    {
-        mask |= MIRK_BIN_PREF_REX;
-        data.rex = 0x48; // Wxxx
-        data.cmd = 0x03; // add r64 to r/m64
-
-        if (dst_data.type == MIRK_BIN_REG) 
-        {
-            mask |= MIRK_BIN_BYTE_MRM;
-            data.mrm = 
-        }
-        else
-        {
-        }
-    }
-    else if (src_data.type == MIRK_BIN_IMM)
-    {
-        mask |= MIRK_BIN_PREF_REX;
-        data.rex = 0x48; // Wxxx
-        data.cmd = 0x81; // add r64 to r/m64
-
-        if (dst_data.type == MIRK_BIN_MEM) 
-        {
-            mask |= MIRK_BIN_BYTE_MRM;
-            data.mrm = 
-        }
-        else if (dst_data.type == MIRK_BIN_REG)
-        {
-            mask |= MIRK_BIN_BYTE_MRM;
-            data.mrm = 
-        }
+        break;
     }
 }
-*/
+
 #undef MIRK_MAKE_SIB
 #undef MIRK_MAKE_MRM

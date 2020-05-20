@@ -1,4 +1,4 @@
-CC= gcc
+CC= g++
 CFLAGS= -Isrc -std=c++17 -O2
 
 LD= $(CC)
@@ -8,8 +8,14 @@ SRCDIR= src
 OBJDIR= obj
 BINDIR= bin
 
-SRCFILES= main.cpp $(SRCDIR)/context.cpp
-OBJFILES= $(OBJDIR)/main.o $(OBJDIR)/context.o
+SRCFILES= main.cpp \
+	$(SRCDIR)/elfgen/context.cpp \
+	$(SRCDIR)/disasm/CElcDisasm.cpp \
+	$(SRCDIR)/exegen/CGenElcX86.cpp
+OBJFILES= $(OBJDIR)/main.o \
+	$(OBJDIR)/context.o \
+	$(OBJDIR)/CElcDisasm.o \
+	$(OBJDIR)/CGenElcX86.o
 TARGET= $(BINDIR)/main
 
 TAGFILE= tags

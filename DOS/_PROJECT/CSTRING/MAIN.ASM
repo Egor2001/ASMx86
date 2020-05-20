@@ -2,8 +2,18 @@
 
 .data
 VIDEO_SEG       equ 0b800h
+
 src_str         db 'str1',10,13,'$'
 dest_str        db 'str2',10,13,'$'
+
+WND_WIDTH       equ 80
+WND_HEIGHT      equ 25
+SYMB            equ 'a'
+
+COORD_X         equ 40
+COORD_Y         equ 5
+BOX_WIDTH       equ 10
+BOX_HEIGHT      equ 10
 
 extrn wmemset : proc
 extrn memcpy : proc
@@ -14,19 +24,19 @@ org 100h
 Start:          
                 mov ax, VIDEO_SEG
                 mov es, ax
-                mov al, 'a'
+                mov al, SYMB
                 mov ah, 0fh
-                mov cx, 80
+                mov cx, WND_WIDTH
                 mov di, 0
                 cld
                 call wmemset
 
                 mov ax, VIDEO_SEG
                 mov es, ax
-                mov ax, (80*5 + 40)*2
+                mov ax, (WND_WIDTH*COORD_Y + COORD_X)*2
                 mov di, ax
-                mov dl, 10
-                mov dh, 10
+                mov dl, BOX_WIDTH
+                mov dh, BOX_HEIGHT
                 call draw_box
 
                 mov ax, ds
@@ -105,7 +115,7 @@ draw_box        proc
                 sub dh, 2
                 mov cl, dh
 
-                add di, 79*2
+                add di, (WND_WIDTH - 1)*2
 
                 mov ax, 0
                 mov al, dl
@@ -130,7 +140,7 @@ DrawLoop:
                 mov dx, bx
 
                 pop cx
-                add di, 79*2
+                add di, (WND_WIDTH - 1)*2
 
                 mov ax, 0
                 mov al, dl

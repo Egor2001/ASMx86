@@ -37,8 +37,7 @@ void CBinGen::translate_next(const SMirkX86Instruction& instr,
 }
 
 // protected
-void CBinGen::translate_x86(const SInstrData& data, uint8_t mask,
-                            uint8_t dis_cnt, uint8_t imm_cnt)
+void CBinGen::translate_x86(const SInstrData& data)
 {
     if (mask & MIRK_BIN_PREF_REX) text_vec_.push_back(data.rex);
     if (mask & MIRK_BIN_PREF_0FH) text_vec_.push_back(0x0F);
@@ -74,121 +73,114 @@ void CBinGen::translate_x86(const SInstrData& data, uint8_t mask,
 //---------------------------------------- 
 
 // set REX prefix [3 0] (+flag_rex)
-uint8_t CBinGen::instr_set_rex(SInstrData* data, 
-                               uint8_t rex)
+uint8_t CBinGen::SInstrData::set_rex(uint8_t rex)
 {
     assert(data);
-    data->mask |= MIRK_BIN_PREF_REX;
-    data->rex = 0x40 + (rex & 0xF);
+    this->mask |= MIRK_BIN_PREF_REX;
+    this->rex = 0x40 + (rex & 0xF);
 
-    return data->mask;
+    return this->mask;
 }
 
 // set 0FH prefix [7 0] (+flag_0fh)
-uint8_t CBinGen::instr_set_0fh(SInstrData* data)
+uint8_t CBinGen::SInstrData::set_0fh()
 {
     assert(data);
-    data->mask |= MIRK_BIN_PREF_0FH;
+    this->mask |= MIRK_BIN_PREF_0FH;
 
-    return data->mask;
+    return this->mask;
 }
 
 // set OPCODE
-uint8_t CBinGen::instr_set_opc(SInstrData* data, uint8_t opc)
+uint8_t CBinGen::SInstrData::set_opc(uint8_t opc)
 {
     assert(data);
-    data->opc = opc;
+    this->opc = opc;
 
-    return data->mask;
+    return this->mask;
 }
 
 // add REG [2 0] to OPCODE
-uint8_t CBinGen::instr_add_reg_opc(SInstrData* data, 
-                                   uint8_t reg_opc)
+uint8_t CBinGen::SInstrData::add_reg_opc(uint8_t reg_opc)
 {
     assert(data);
-    data->opc += reg_opc;
+    this->opc += reg_opc;
 
-    return data->mask;
+    return this->mask;
 }
 
 // set REG [5 3] of MOD_R_M (+flag_modrm)
-uint8_t CBinGen::instr_set_reg_ext(SInstrData* data, 
-                                   uint8_t reg_ext)
+uint8_t CBinGen::SInstrData::set_reg_ext(uint8_t reg_ext)
 {
     assert(data);
-    data->mask |= MIRK_BIN_BYTE_MRM;
-    data->mrm = MIRK_MAKE_MRM(MIRK_GET_MRM_MOD(data->mrm), reg_ext, 
-                              MIRK_GET_MRM_R_M(data->mrm));
+    this->mask |= MIRK_BIN_BYTE_MRM;
+    this->mrm = MIRK_MAKE_MRM(MIRK_GET_MRM_MOD(this->mrm), reg_ext, 
+                              MIRK_GET_MRM_R_M(this->mrm));
 
-    return data->mask;
+    return this->mask;
 }
 
 // set MOD [7 6] & R_M [2 0] of MOD_R_M (+flag_modrm)
-uint8_t CBinGen::instr_set_mod_r_m(SInstrData* data,
-                                   uint8_t mod, uint8_t r_m)
+uint8_t CBinGen::SInstrData::set_mod_r_m(uint8_t mod, uint8_t r_m)
 {
     assert(data);
-    data->mask |= MIRK_BIN_BYTE_MRM;
-    data->mrm = MIRK_MAKE_MRM(mod, MIRK_GET_MRM_REG(data->mrm), r_m);
+    this->mask |= MIRK_BIN_BYTE_MRM;
+    this->mrm = MIRK_MAKE_MRM(mod, MIRK_GET_MRM_REG(this->mrm), r_m);
 
-    return data->mask;
+    return this->mask;
 }
 
 // set MOD [7 6] & R_M [2 0] of MOD_R_M (+flag_modrm)
-uint8_t CBinGen::instr_set_mrm_d32(SInstrData* data)
+uint8_t CBinGen::SInstrData::set_mrm_d32()
 {
     assert(data);
-    data->mask |= MIRK_BIN_BYTE_MRM;
-    data->mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(data->mrm), 0b101);
+    this->mask |= MIRK_BIN_BYTE_MRM;
+    this->mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(this->mrm), 0b101);
 
-    return data->mask;
+    return this->mask;
 }
 
 // set MOD [7 6] & R_M [2 0] of MOD_R_M & SIB[7 0] (+flag_modrm) (+flag_sib)
-uint8_t CBinGen::instr_set_mrm_sib(SInstrData* data, 
-                                   uint8_t scale, uint8_t index, uint8_t base)
+uint8_t CBinGen::SInstrData::set_mrm_sib(uint8_t scale, uint8_t index, 
+                                         uint8_t base)
 {
     assert(data);
-    data->mask |= MIRK_BIN_BYTE_MRM | MIRK_BIN_BYTE_SIB;
-    data->mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(data->mrm), 0b100);
-    data->sib = MIRK_MAKE_SIB(scale, index, base);
+    this->mask |= MIRK_BIN_BYTE_MRM | MIRK_BIN_BYTE_SIB;
+    this->mrm = MIRK_MAKE_MRM(0b00, MIRK_GET_MRM_REG(this->mrm), 0b100);
+    this->sib = MIRK_MAKE_SIB(scale, index, base);
 
-    return data->mask;
+    return this->mask;
 }
 
 // set DISPLACEMENT [31 0] (+flag_dis)
-uint8_t CBinGen::instr_set_dis(SInstrData* data, 
-                               uint32_t dis)
+uint8_t CBinGen::SInstrData::set_dis(uint32_t dis)
 {
     assert(data);
-    data->mask |= MIRK_BIN_DATA_DIS;
-    data->dis = dis;
+    this->mask |= MIRK_BIN_DATA_DIS;
+    this->dis = dis;
 
-    return data->mask;
+    return this->mask;
 }
 
 // set IMMEDIATE [31 0] (+flag_imm)
-uint8_t CBinGen::instr_set_imm(SInstrData* data, 
-                               uint32_t imm)
+uint8_t CBinGen::SInstrData::set_imm(uint32_t imm)
 {
     assert(data);
-    data->mask |= MIRK_BIN_DATA_IMM;
-    data->imm = imm;
+    this->mask |= MIRK_BIN_DATA_IMM;
+    this->imm = imm;
 
-    return data->mask;
+    return this->mask;
 }
 
 // set DISPLACEMENT [31 0] & IMMEDIATE [31 0] (+flag_dis) (+flag_imm)
-uint8_t CBinGen::instr_set_imm_dis(SInstrData* data, 
-                                   uint64_t val)
+uint8_t CBinGen::SInstrData::set_imm_dis(uint64_t val)
 {
     assert(data);
-    data->mask |= MIRK_BIN_DATA_DIS | MIRK_BIN_DATA_IMM;
-    data->dis = static_cast<uint32_t>(val);
-    data->imm = static_cast<uint32_t>(val >> 32u);
+    this->mask |= MIRK_BIN_DATA_DIS | MIRK_BIN_DATA_IMM;
+    this->dis = static_cast<uint32_t>(val);
+    this->imm = static_cast<uint32_t>(val >> 32u);
 
-    return data->mask;
+    return this->mask;
 }
 
 //---------------------------------------- 

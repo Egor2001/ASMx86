@@ -19,19 +19,38 @@ public:
         MIRK_BIN_DATA_IMM = 0x20
     };
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 
     struct SInstrData
     {
-        uint8_t mask;
+        //used fields mask;
+        uint8_t i_mask;
 
-        uint8_t rex; 
-        uint8_t opc; 
-        uint8_t mrm, sib;
-        uint32_t dis, imm;
+        //x86 instruction fields;
+        uint8_t i_rex; 
+        uint8_t i_opc; 
+        uint8_t i_mrm, i_sib;
+        uint32_t i_dis, i_imm;
+
+        //x86 fields setters;
+        uint8_t set_rex    (uint8_t rex);
+        uint8_t set_0fh    ();
+
+        uint8_t set_opc    (uint8_t opc);
+
+        uint8_t add_reg_opc(uint8_t reg_opc);
+        uint8_t set_reg_ext(uint8_t reg_ext);
+
+        uint8_t set_mod_r_m(uint8_t mod, uint8_t r_m);
+        uint8_t set_mrm_d32();
+        uint8_t set_mrm_sib(uint8_t scale, uint8_t index, uint8_t base);
+
+        uint8_t set_dis    (uint32_t dis);
+        uint8_t set_imm    (uint32_t imm);
+        uint8_t set_dis_imm(uint64_t val);
     };
 
-#pragma pack(pop, 1)
+//#pragma pack(pop, 1)
 
     CBinGen(size_t word_cnt, const UMirkX86Word* word_buf);
 
@@ -48,30 +67,14 @@ public:
     const std::vector<uint8_t>& text_vec() const noexcept { return text_vec_; }
 
 protected:
-    uint8_t instr_set_rex    (uint8_t mask, SInstrData* data, uint8_t rex);
-    uint8_t instr_set_0fh    (uint8_t mask, SInstrData* data);
 
-    uint8_t instr_set_opc    (uint8_t mask, SInstrData* data, uint8_t opc);
-
-    uint8_t instr_add_reg_opc(uint8_t mask, SInstrData* data, uint8_t reg_opc);
-    uint8_t instr_set_reg_ext(uint8_t mask, SInstrData* data, uint8_t reg_ext);
-
-    uint8_t instr_set_mod_r_m(uint8_t mask, SInstrData* data,
-                              uint8_t mod, uint8_t r_m);
-    uint8_t instr_set_mrm_d32(uint8_t mask, SInstrData* data);
-    uint8_t instr_set_mrm_sib(uint8_t mask, SInstrData* data, 
-                              uint8_t scale, uint8_t index, uint8_t base);
-
-    uint8_t instr_set_dis    (uint8_t mask, SInstrData* data, uint32_t dis);
-    uint8_t instr_set_imm    (uint8_t mask, SInstrData* data, uint32_t imm);
-    uint8_t instr_set_dis_imm(uint8_t mask, SInstrData* data, uint64_t val);
-
-    void translate_x86(const SInstrData& data, uint8_t mask,
-                       uint8_t dis_cnt, uint8_t imm_cnt);
+    void translate_x86(const SInstrData& data);
 
 #define MIRK_X86_COMMAND(CMD_ENUM, CMD_CODE, CMD_NAME) \
-    void translate_cmd_##CMD_NAME(EMirkX86ArgType dst, EMirkX86ArgType src, \
-                                  const UMirkX86Word* addr);
+    void translate_cmd_##CMD_NAME(EMirkX86ArgType dst, \
+                                  const UMirkX86Word* dst_addr, \
+                                  EMirkX86ArgType src, \
+                                  const UMirkX86Word* src_addr);
 
     #include "../x86_spec/X86Commands.h"
 

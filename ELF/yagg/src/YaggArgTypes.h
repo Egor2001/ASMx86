@@ -1,0 +1,4 @@
+YAGG_ARG_TYPE(NUL, 0x0, nul)
+YAGG_ARG_TYPE(IMM, 0x1, imm)
+YAGG_ARG_TYPE(REG, 0x2, reg)
+YAGG_ARG_TYPE(MEM, 0x4, mem)

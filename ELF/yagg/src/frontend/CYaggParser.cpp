@@ -1,13 +1,15 @@
 #include "CYaggParser.hpp"
 
-bool CYaggParser::parse_instr(SYaggInstr* instr, 
-                              const std::string_view& text) try
+CYaggParser::CYaggParser(const std::string_view& text):
+    text_{ text }
+{}
+
+bool CYaggParser::parse_instr(SYaggInstr* instr) try
 {
     assert(instr);
 
     static const char INSTR_STR[] = "INSTR";
 
-    text_ = text;
     text_.remove_prefix(offset_skip());
 
     parse_list_begin();
@@ -23,7 +25,7 @@ bool CYaggParser::parse_instr(SYaggInstr* instr,
     while (!text_.empty() && text_.front() != ']')
     {
         instr->entry_vec.emplace_back();
-        parse_entry(&instr->entry_vec.back(), text_);
+        parse_entry(&instr->entry_vec.back());
     }
 
     parse_list_end();
@@ -36,14 +38,12 @@ catch (const CYaggException& exc)
     throw;//it must be implicit, but I have no idea why it's not
 }
 
-bool CYaggParser::parse_entry(SYaggEntry* entry, 
-                              const std::string_view& text) try
+bool CYaggParser::parse_entry(SYaggEntry* entry) try
 {
     assert(entry);
 
     static const char ENTRY_STR[] = "ENTRY";
 
-    text_ = text;
     text_.remove_prefix(offset_skip());
 
     parse_list_begin();
@@ -61,7 +61,7 @@ bool CYaggParser::parse_entry(SYaggEntry* entry,
 
     parse_list_end();
 
-    parse_data(&entry->data, text_);
+    parse_data(&entry->data);
 
     parse_list_end();
 
@@ -73,12 +73,10 @@ catch (const CYaggException& exc)
     throw;//it must be implicit, but I have no idea why it's not
 }
 
-bool CYaggParser::parse_data(SYaggData* data, 
-                             const std::string_view& text) try
+bool CYaggParser::parse_data(SYaggData* data) try
 {
     assert(data);
 
-    text_ = text;
     text_.remove_prefix(offset_skip());
 
     parse_list_begin();
@@ -374,7 +372,7 @@ bool CYaggParser::parse_list_end()
 size_t CYaggParser::offset_skip() const noexcept
 {
     size_t skip = text_.find_first_not_of(" \t\r\n");
-    skip = std::min(skip, std::string_view::npos);
+    skip = std::min(skip, text_.size());
 
     return skip;
 }
@@ -382,7 +380,7 @@ size_t CYaggParser::offset_skip() const noexcept
 size_t CYaggParser::offset_word() const noexcept
 {
     size_t skip = text_.find_first_of(" \t\r\n[]");
-    skip = std::min(skip, std::string_view::npos);
+    skip = std::min(skip, text_.size());
 
     return skip;
 }
@@ -413,11 +411,11 @@ int test_CYaggParser(int argc, const char* argv[])
     std::string_view text{ text_buf };
     printf("received %.*s\n", static_cast<int>(text.size()), text.data());
 
-    CYaggParser parser; 
+    CYaggParser parser{ text };
     SYaggInstr instr = {};
     try 
     {
-        parser.parse_instr(&instr, text);
+        parser.parse_instr(&instr);
     }
     catch (const CYaggException& exc)
     {

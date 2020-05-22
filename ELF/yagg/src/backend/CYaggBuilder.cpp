@@ -43,7 +43,7 @@ bool CYaggBuilder::build_entry(const SYaggEntry& entry,
             (entry.dst << 8u) | entry.src);
     fprintf(yagg_file_, YAGG_TAB("{\n", tab));
 
-    build_entry(entry, name, tab + 4u);
+    build_data(entry.data, name, tab + 4u);
 
     fprintf(yagg_file_, YAGG_TAB("}// case\n", tab));
 

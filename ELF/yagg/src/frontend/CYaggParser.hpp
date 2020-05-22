@@ -19,7 +19,7 @@
 class CYaggParser
 {
 public:
-    CYaggParser() = default;
+    explicit CYaggParser(const std::string_view& text);
 
     CYaggParser             (const CYaggParser&) = delete;
     CYaggParser& operator = (const CYaggParser&) = delete;
@@ -28,9 +28,9 @@ public:
 
     const std::string_view& text() const noexcept { return text_; }
 
-    bool parse_instr(SYaggInstr* instr, const std::string_view& text);
-    bool parse_entry(SYaggEntry* entry, const std::string_view& text);
-    bool parse_data(SYaggData* data, const std::string_view& text);
+    bool parse_instr(SYaggInstr* instr);
+    bool parse_entry(SYaggEntry* entry);
+    bool parse_data(SYaggData* data);
 
 protected:
     bool parse_instr_name(SYaggInstr* instr);

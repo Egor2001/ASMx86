@@ -10,10 +10,10 @@
 #include <string_view>
 #include <algorithm>
 
-#include "YaggDefs.h"
-#include "SYaggInstr.h"
-#include "SYaggEntry.h"
-#include "SYaggData.h"
+#include "../YaggDefs.h"
+#include "../SYaggInstr.h"
+#include "../SYaggEntry.h"
+#include "../SYaggData.h"
 #include "CYaggException.h"
 
 class CYaggParser
@@ -41,7 +41,7 @@ protected:
 #define YAGG_OPTION(OPT_ENUM, OPT_NAME, OPT_SIZE) \
     bool parse_opt_##OPT_NAME(SYaggData* data);
 
-    #include "YaggOptions.h"
+    #include "../lists/YaggOptions.h"
 
 #undef YAGG_OPTION
 
@@ -155,7 +155,7 @@ bool CYaggParser::parse_data(SYaggData* data,
             }
 
         if (false) {}
-        #include "YaggOptions.h"
+        #include "../lists/YaggOptions.h"
         else throw CYaggException("unrecognized word", text_);
 
         #undef YAGG_OPTION
@@ -211,7 +211,7 @@ bool CYaggParser::parse_entry_dst(SYaggEntry* entry)
         }
 
     if (false) {}
-    #include "YaggArgTypes.h"
+    #include "../lists/YaggArgTypes.h"
     else throw CYaggException("unrecognized arg type", text_);
 
     #undef YAGG_ARG_TYPE
@@ -245,7 +245,7 @@ bool CYaggParser::parse_entry_src(SYaggEntry* entry)
         }
 
     if (false) {}
-    #include "YaggArgTypes.h"
+    #include "../lists/YaggArgTypes.h"
     else throw CYaggException("unrecognized arg type", text_);
 
     #undef YAGG_ARG_TYPE
@@ -259,7 +259,10 @@ bool CYaggParser::parse_opt_rex(SYaggData* data)
 {
     assert(data);
 
-    data->mask |= SYaggData::PREF_REX;
+    if (data->mask & SYaggData::PREF_REX)
+        throw CYaggException("REX duplication", text_);
+    else
+        data->mask |= SYaggData::PREF_REX;
 
     char* num_end = nullptr;
     data->rex = std::strtoul(text_.data(), &num_end, 0);
@@ -279,7 +282,10 @@ bool CYaggParser::parse_opt_0fh(SYaggData* data)
 {
     assert(data);
 
-    data->mask |= SYaggData::PREF_0FH;
+    if (data->mask & SYaggData::PREF_0FH)
+        throw CYaggException("0FH duplication", text_);
+    else
+        data->mask |= SYaggData::PREF_0FH;
 
     return true;
 }
@@ -288,8 +294,36 @@ bool CYaggParser::parse_opt_opc(SYaggData* data)
 {
     assert(data);
 
+    if (data->mask & SYaggData::BYTE_OPC)
+        throw CYaggException("0FH duplication", text_);
+    else
+        data->mask |= SYaggData::BYTE_OPC;
+
     char* num_end = nullptr;
     data->opc = std::strtoul(text_.data(), &num_end, 0);
+
+    if (num_end == text_.data())
+        throw CYaggException("expected immediate", text_);
+    else if (!num_end)
+        throw CYaggException("invalid immediate", text_);
+
+    text_.remove_prefix(num_end - text_.data());
+    text_.remove_prefix(offset_skip());
+
+    return true;
+}
+
+bool CYaggParser::parse_opt_ext(SYaggData* data)
+{
+    assert(data);
+
+    if (data->mask & SYaggData::SUFF_EXT)
+        throw CYaggException("EXT duplication", text_);
+    else
+        data->mask |= SYaggData::SUFF_EXT;
+
+    char* num_end = nullptr;
+    data->ext = std::strtoul(text_.data(), &num_end, 0);
 
     if (num_end == text_.data())
         throw CYaggException("expected immediate", text_);
@@ -306,6 +340,11 @@ bool CYaggParser::parse_opt_dst(SYaggData* data)
 {
     assert(data);
 
+    if (data->mask & SYaggData::DATA_DST)
+        throw CYaggException("DST duplication", text_);
+    else
+        data->mask |= SYaggData::DATA_DST;
+
     size_t pref = offset_word();
 
     #define YAGG_TARGET(TGT_ENUM, TGT_NAME) \
@@ -318,7 +357,7 @@ bool CYaggParser::parse_opt_dst(SYaggData* data)
         }
 
     if (false) {}
-    #include "YaggTargets.h"
+    #include "../lists/YaggTargets.h"
     else throw CYaggException("unrecognized target", text_);
 
     #undef YAGG_TARGET
@@ -329,6 +368,11 @@ bool CYaggParser::parse_opt_dst(SYaggData* data)
 bool CYaggParser::parse_opt_src(SYaggData* data)
 {
     assert(data);
+
+    if (data->mask & SYaggData::DATA_SRC)
+        throw CYaggException("SRC duplication", text_);
+    else
+        data->mask |= SYaggData::DATA_SRC;
 
     size_t pref = offset_word();
 
@@ -342,7 +386,7 @@ bool CYaggParser::parse_opt_src(SYaggData* data)
         }
 
     if (false) {}
-    #include "YaggTargets.h"
+    #include "../lists/YaggTargets.h"
     else throw CYaggException("unrecognized target", text_);
 
     #undef YAGG_TARGET
@@ -354,7 +398,10 @@ bool CYaggParser::parse_opt_jmp(SYaggData* data)
 {
     assert(data);
 
-    data->mask |= SYaggData::FLAG_JMP;
+    if (data->mask & SYaggData::FLAG_JMP)
+        throw CYaggException("JMP duplication", text_);
+    else
+        data->mask |= SYaggData::FLAG_JMP;
 
     return true;
 }
@@ -424,10 +471,10 @@ int test_CYaggParser(int argc, const char* argv[])
     printf("received %.*s\n", static_cast<int>(text.size()), text.data());
 
     CYaggParser parser; 
-    SYaggEntry entry = {};
+    SYaggInstr instr = {};
     try 
     {
-        parser.parse_entry(&entry, text);
+        parser.parse_instr(&instr, text);
     }
     catch (const CYaggException& exc)
     {
@@ -439,7 +486,7 @@ int test_CYaggParser(int argc, const char* argv[])
         return 0;
     }
 
-    entry.dump(stdout);
+    instr.dump(stdout);
 
     return 0;
 }

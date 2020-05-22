@@ -6,7 +6,7 @@ enum EYaggOption
 #define YAGG_OPTION(OPT_ENUM, OPT_NAME, OPT_LEN) \
     YAGG_OPT_##OPT_ENUM,
 
-    #include "YaggOptions.h"
+    #include "../lists/YaggOptions.h"
 
 #undef YAGG_OPTION
 };

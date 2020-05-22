@@ -6,7 +6,7 @@ enum EYaggArgType
 #define YAGG_ARG_TYPE(ARG_ENUM, ARG_CODE, ARG_NAME) \
     YAGG_ARG_TYPE_##ARG_ENUM = ARG_CODE,
 
-    #include "YaggArgTypes.h"
+    #include "../lists/YaggArgTypes.h"
 
 #undef YAGG_ARG_TYPE
 };

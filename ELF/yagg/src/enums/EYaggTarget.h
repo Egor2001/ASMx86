@@ -6,7 +6,7 @@ enum EYaggTarget
 #define YAGG_TARGET(TGT_ENUM, TGT_NAME) \
     YAGG_TGT_##TGT_ENUM,
 
-    #include "YaggTargets.h"
+    #include "../lists/YaggTargets.h"
 
 #undef YAGG_TARGET
 };

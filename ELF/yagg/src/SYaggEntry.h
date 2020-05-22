@@ -4,7 +4,7 @@
 #include <cstdio>
 
 #include "YaggDefs.h"
-#include "EYaggArgType.h"
+#include "enums/EYaggArgType.h"
 #include "SYaggData.h"
 
 struct SYaggEntry

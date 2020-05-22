@@ -1,5 +1,5 @@
-#ifndef YAGG_EXCEPTION_H
-#define YAGG_EXCEPTION_H
+#ifndef YAGG_EXCEPTION_HPP
+#define YAGG_EXCEPTION_HPP
 
 #include <stdexcept>
 #include <string_view>
@@ -28,4 +28,4 @@ private:
     std::string_view where_;
 };
 
-#endif //YAGG_EXCEPTION_H
+#endif //YAGG_EXCEPTION_HPP

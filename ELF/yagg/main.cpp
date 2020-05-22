@@ -1,5 +1,5 @@
-#include "src/frontend/CYaggParser.h"
-#include "src/backend/CYaggBuilder.h"
+#include "src/frontend/CYaggParser.hpp"
+#include "src/backend/CYaggBuilder.hpp"
 
 int main(int argc, const char* argv[])
 {

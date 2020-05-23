@@ -37,8 +37,8 @@ bool CBinGen::push_instr(const SMirkX86Instruction& instr,
     #undef MIRK_X86_ARGTYPE
     }
 
-    SInstrArg dst = { .type = instr.dst, .addr = addr };
-    SInstrArg src = { .type = instr.src, .addr = addr + off };
+    SInstrArg dst = { .type = instr.dst, .addr = addr + 1u };
+    SInstrArg src = { .type = instr.src, .addr = addr + 1u + off };
 
     switch (instr.cmd)
     {

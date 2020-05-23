@@ -424,7 +424,7 @@ generate_cmd_out(std::vector<SX86Data>& cmd_vec,
     MIRK_GEN_X86(cmd_vec, ADD, REG, IMM, st_args + 0xA); // add RSP, 0x08
 }
 
-#undef MIRK_INVOKE_GEN
+#undef MIRK_GEN_X86
 
 //<\MANUALLY-IMPL>
 //----------------------------------------

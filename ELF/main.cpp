@@ -93,6 +93,15 @@ public:
         {
             printf("X86 data: ");
             dump_x86_data(data);
+
+            size_t word_idx = data.word_idx + 1u;
+            for (size_t idx = 0u; idx != data.dst_len; ++idx)
+                printf("%#x ", exegen.text_vec()[word_idx + idx]);
+
+            word_idx += data.dst_len;
+            for (size_t idx = 0u; idx != data.src_len; ++idx)
+                printf("%#x ", exegen.text_vec()[word_idx + idx]);
+
             printf("[IDX %#x] [LEN %zu]\n", 
                     data.word_idx, data.dst_len + data.src_len);
         }
@@ -117,7 +126,7 @@ public:
         printf("BIN cnt: %zu\n", result.size());
         printf("BIN data: \n");
         for (uint8_t data : result)
-            printf("%0#hhx ", data);
+            printf("%#hhx ", data);
 
         return std::move(result);
     }

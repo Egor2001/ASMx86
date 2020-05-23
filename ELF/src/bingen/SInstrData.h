@@ -23,7 +23,7 @@ struct SInstrData
         MIRK_BIN_DATA_IMM = 0x20
     };
 
-    static constexpr uint8_t FIELD_SIZE[8u] = { 0u, 1u, 1u, 1u, 1u, 4u, 4u };
+    static constexpr uint8_t FIELD_SIZE[8u] = { 1u, 1u, 1u, 1u, 4u, 4u };
 
 //used fields mask;
     uint8_t i_mask;

@@ -39,19 +39,13 @@ size_t SInstrData::translate(uint8_t* addr) const
     assert(addr);
     uint8_t* init = addr;
 
-    if (i_mask & MIRK_BIN_PREF_REX)
-        *addr++ = i_rex;
-
-    if (i_mask & MIRK_BIN_PREF_0FH)
-        *addr++ = 0x0F;
+    if (i_mask & MIRK_BIN_PREF_REX) *addr++ = i_rex;
+    if (i_mask & MIRK_BIN_PREF_0FH) *addr++ = 0x0F;
 
     *addr++ = i_opc;
 
-    if (i_mask & MIRK_BIN_BYTE_MRM)
-        *addr++ = i_mrm;
-
-    if (i_mask & MIRK_BIN_BYTE_SIB)
-        *addr++ = i_sib;
+    if (i_mask & MIRK_BIN_BYTE_MRM) *addr++ = i_mrm;
+    if (i_mask & MIRK_BIN_BYTE_SIB) *addr++ = i_sib;
 
     if (i_mask & MIRK_BIN_DATA_DIS) 
     {

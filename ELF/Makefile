@@ -9,13 +9,19 @@ OBJDIR= obj
 BINDIR= bin
 
 SRCFILES= main.cpp \
-	$(SRCDIR)/elfgen/context.cpp \
+	$(SRCDIR)/elfgen/CMirkContext.cpp \
 	$(SRCDIR)/disasm/CElcDisasm.cpp \
-	$(SRCDIR)/exegen/CGenElcX86.cpp
+	$(SRCDIR)/exegen/CGenElcX86.cpp \
+	$(SRCDIR)/bingen/CBinGen.cpp \
+	$(SRCDIR)/bingen/SInstrData.cpp
+
 OBJFILES= $(OBJDIR)/main.o \
-	$(OBJDIR)/context.o \
+	$(OBJDIR)/CMirkContext.o \
 	$(OBJDIR)/CElcDisasm.o \
-	$(OBJDIR)/CGenElcX86.o
+	$(OBJDIR)/CGenElcX86.o \
+	$(OBJDIR)/CBinGen.o \
+	$(OBJDIR)/SInstrData.o
+
 TARGET= $(BINDIR)/main
 
 TAGFILE= tags

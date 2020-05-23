@@ -1,4 +1,4 @@
-#include "context.hpp"
+#include "CMirkContext.hpp"
 
 CMirkContext::
 CMirkContext(uint64_t prog_text_size_other, const uint8_t* text_buf_other,

@@ -1,0 +1,63 @@
+YAGG (Yet Another Generator Generator)
+
+Info:
+YAGG - tiny x86_64 instruction set DSL for binary generation
+
+Frontend DSL:
+<instr> ::= [INSTR <entry> (<entry>...) ]
+<entry> ::= [[ENTRY [<argtype>] ([<argtype>])] [<properties>]]
+<argtype> ::= nul | imm | reg | mem
+<properties> ::= (<prop_rex>) (<prop_0fh>) (<prop_opc>) (<prop_ext>) 
+                 (<prop_dst>) (<prop_src>) (<prop_jmp>)
+<prop_xxx> ::= [xxx (<val>)]
+
+Backend Macros:
+YB_INSTR_FNC(instr) - function name for instr
+YB_ARG_TYPE - dst & src type within a function argument list
+YB_DATA_TYPE - result command data type
+YB_TYPE_FNC(arg) - yagg arg type from YB_ARG_TYPE
+
+YB_DATA_SET_REX(data, imm)
+YB_DATA_SET_0FH(data);
+YB_DATA_SET_OPC(data, imm)
+YB_DATA_SET_EXT(data, imm)
+YB_DATA_SET_ARG(data, ARG_TARGET, dst/src)
+YB_NEW_JUMP(data)
+
+YB_NEW_DATA(data) - add new instr
+
+Example:
+
+Frontend DSL file:
+
+[INSTR [all]
+    [[ENTRY [reg] [mem]] 
+        [[rex 0x8] [0fh] [opc 0x03] [ext 0x5] [dst reg] [src r_m] [jmp]]
+    ]
+]
+
+
+Backend OUT file:
+
+bool YB_INSTR_FNC(all)(const YB_ARG_TYPE& dst, const YB_ARG_TYPE& src)
+{
+    YB_DATA_TYPE data = {};
+    EYaggArgType dst_type = YB_TYPE_FNC(dst);
+    EYaggArgType src_type = YB_TYPE_FNC(src);
+    switch ((dst_type << 8u) | src_type)
+    {
+        case 0x204:
+        {
+            YB_DATA_SET_REX(data, 0x8);
+            YB_DATA_SET_0FH(data);
+            YB_DATA_SET_OPC(data, 0x3);
+            YB_DATA_SET_EXT(data, 0x5);
+            YB_DATA_SET_ARG(data, reg, dst);
+            YB_DATA_SET_ARG(data, r_m, src);
+            YB_NEW_JUMP(data);
+        }// case
+        default: return false;
+    }// switch
+    YB_NEW_DATA(data);
+    return true;
+}

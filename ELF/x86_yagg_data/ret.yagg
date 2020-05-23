@@ -1,0 +1,5 @@
+[INSTR [ret]
+    [[ENTRY [nul]]
+        [[opc 0xC3]]
+    ]
+]

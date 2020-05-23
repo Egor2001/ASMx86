@@ -1,0 +1,8 @@
+[INSTR [not]
+    [[ENTRY [reg]]
+        [[rex 0x8] [opc 0xF7] [ext 0x2] [dst r_m]]
+    ]
+    [[ENTRY [mem]]
+        [[rex 0x8] [opc 0xF7] [ext 0x2] [dst r_m]]
+    ]
+]

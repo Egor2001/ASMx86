@@ -14,3 +14,8 @@
         [[rex 0xC] [opc 0x21] [ext 0x4] [dst r_m]]
     ]
 ]
+[INSTR [all]
+    [[ENTRY [reg] [mem]] 
+        [[rex 0x8] [0fh] [opc 0x03] [ext 0x5] [dst reg] [src r_m] [jmp]]
+    ]
+]

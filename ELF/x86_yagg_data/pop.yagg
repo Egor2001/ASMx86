@@ -1,0 +1,8 @@
+[INSTR [pop]
+    [[ENTRY [reg]]
+        [[opc 0x8F] [ext 0x0] [dst r_m]]
+    ]
+    [[ENTRY [mem]]
+        [[opc 0x8F] [ext 0x0] [dst r_m]]
+    ]
+]

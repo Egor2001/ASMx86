@@ -7,9 +7,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "src/elfgen/context.hpp"
+#include "src/elfgen/CMirkContext.hpp"
 #include "src/disasm/CElcDisasm.hpp"
 #include "src/exegen/CGenElcX86.hpp"
+#include "src/bingen/CBinGen.hpp"
 
 class CMirkTest
 {
@@ -50,7 +51,8 @@ public:
         word_cnt_ = 0u;
     }
 
-    std::vector<CElcDisasm::SElcData> test_disasm() const
+    std::vector<CElcDisasm::SElcData> 
+    test_disasm() const
     {
         CElcDisasm disasm(word_cnt_, text_buf_);
         std::vector<CElcDisasm::SElcData> result;
@@ -75,7 +77,8 @@ public:
         return std::move(result);
     }
 
-    std::vector<CGenElcX86::SX86Data> test_exegen() const
+    std::vector<CGenElcX86::SX86Data> 
+    test_exegen(std::vector<UMirkX86Word>& text_vec) const
     {
         auto elc_data_vec = test_disasm();
 
@@ -94,7 +97,49 @@ public:
                     data.word_idx, data.dst_len + data.src_len);
         }
 
+        text_vec = exegen.text_vec();
         return std::move(result);
+    }
+
+    std::vector<uint8_t> 
+    test_bingen() const
+    {
+        std::vector<UMirkX86Word> text_vec;
+        auto x86_data_vec = test_exegen(text_vec);
+
+        CBinGen bingen;
+        for (const auto& data : x86_data_vec)
+            bingen.push_instr(data.instr, text_vec.data() + data.word_idx);
+
+        std::vector<uint8_t> result;
+        bingen.translate_instr(result);
+
+        printf("BIN cnt: %zu\n", result.size());
+        printf("BIN data: \n");
+        for (uint8_t data : result)
+            printf("%0#hhx ", data);
+
+        return std::move(result);
+    }
+
+    void
+    test_elfgen() const
+    {
+        constexpr static size_t DEFAULT_DATA_SIZE = 0x100;
+        constexpr static char DEFAULT_FILE_NAME[] = "elc.out";
+        constexpr uint8_t x86_data_buf[DEFAULT_DATA_SIZE] = {};
+
+        auto x86_text_vec = test_bingen();
+        CMirkContext context(x86_text_vec.size(), x86_text_vec.data(), 
+                             DEFAULT_DATA_SIZE, x86_data_buf);
+
+        int fdout = open(DEFAULT_FILE_NAME, O_RDWR | O_CREAT, 0766);
+        assert(fdout != -1);
+
+        context.create(fdout);
+
+        close(fdout);
+        fdout = -1;
     }
 
     static void dump_elc_data(const CElcDisasm::SElcData& data)
@@ -175,11 +220,14 @@ private:
 int main(int argc, char* argv[])
 {
     //test_CMirkContext(argc, argv);
+
     assert(argc == 2);
     CMirkTest test(argv[1u]);
 
     //test.test_disasm();
-    test.test_exegen();
+    //test.test_exegen();
+    //test.test_bingen();
+    test.test_elfgen();
 
     return 0u;
 }

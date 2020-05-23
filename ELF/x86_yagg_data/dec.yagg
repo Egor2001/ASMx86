@@ -1,0 +1,8 @@
+[INSTR [dec]
+    [[ENTRY [reg]]
+        [[rex 0x8] [opc 0xFF] [ext 0x1] [dst r_m]]
+    ]
+    [[ENTRY [mem]]
+        [[rex 0x8] [opc 0xFF] [ext 0x1] [dst r_m]]
+    ]
+]

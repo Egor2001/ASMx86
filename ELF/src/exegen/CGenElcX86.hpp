@@ -6,6 +6,7 @@
 
 #include "../elc_spec/SMirkElcInstruction.h"
 #include "../elc_spec/UMirkElcWord.h"
+#include "../x86_spec/EMirkX86Command.h"
 #include "../x86_spec/SMirkX86Instruction.h"
 #include "../x86_spec/UMirkX86Word.h"
 

@@ -1,0 +1,5 @@
+[INSTR [jg]
+    [[ENTRY [imm]]
+        [[0fh] [opc 0x8F] [dst dis] [jmp]]
+    ]
+]

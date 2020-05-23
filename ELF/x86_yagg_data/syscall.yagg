@@ -1,0 +1,5 @@
+[INSTR [syscall]
+    [[ENTRY [nul]]
+        [[0fh] [opc 0x05]]
+    ]
+]

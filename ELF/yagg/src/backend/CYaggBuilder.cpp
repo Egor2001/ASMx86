@@ -18,7 +18,7 @@ bool CYaggBuilder::build_instr(const SYaggInstr& instr, size_t tab)
     fprintf(yagg_file_, YAGG_TAB("EYaggArgType src_type = YB_TYPE_FNC(src);\n", 
                                  tab + 4u));
 
-    fprintf(yagg_file_, YAGG_TAB("switch ((dst_type << 8u) | src_type)\n", 
+    fprintf(yagg_file_, YAGG_TAB("switch ((dst_type << 4u) | src_type)\n", 
                                  tab + 4u));
     fprintf(yagg_file_, YAGG_TAB("{\n", tab + 4u));
 
@@ -40,12 +40,13 @@ bool CYaggBuilder::build_entry(const SYaggEntry& entry,
                                const std::string_view& name, size_t tab)
 {
     fprintf(yagg_file_, YAGG_TAB("case %#hx:\n", tab), 
-            (entry.dst << 8u) | entry.src);
+            (entry.dst << 4u) | entry.src);
     fprintf(yagg_file_, YAGG_TAB("{\n", tab));
 
     build_data(entry.data, name, tab + 4u);
 
-    fprintf(yagg_file_, YAGG_TAB("}// case\n", tab));
+    fprintf(yagg_file_, YAGG_TAB("}\n", tab));
+    fprintf(yagg_file_, YAGG_TAB("break;// case\n", tab));
 
     return true;
 }

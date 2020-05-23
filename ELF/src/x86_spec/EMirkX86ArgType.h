@@ -4,7 +4,7 @@
 #define MIRK_X86_ARGTYPE(ARG_TYPE, ARG_CODE, ARG_NAME, ARG_SIZE) \
     MIRK_X86_ARG_##ARG_TYPE = ARG_CODE,
 
-enum EMirkX86ArgType : uint8_t
+enum EMirkX86ArgType// : uint8_t
 {
     #include "X86ArgTypes.h"
 };

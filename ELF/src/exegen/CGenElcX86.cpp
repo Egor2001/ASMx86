@@ -1,45 +1,79 @@
 #include "CGenElcX86.hpp"
+#include <cstdio>
 
 CGenElcX86::CGenElcX86():
-    text_vec_{},
-    addr_vec_{}
-{}
+    x86_size_{}, elc_size_{},
+    x86_indx_vec_{},
+    elc_indx_vec_{},
+    text_vec_{}
+{
+    x86_size_ = elc_size_ = 0u;
+    x86_indx_vec_.push_back(x86_size_);
+    elc_indx_vec_.push_back(elc_size_);
+}
 
 // public
 void CGenElcX86::generate_next(std::vector<SX86Data>& cmd_vec,
                                const SMirkElcInstruction& instr,
                                const UMirkElcWord* addr)
 {
-#define MIRK_ELC_COMMAND(CMD_ENUM, CMD_CODE, CMD_NAME, CMD_DST, CMD_SRC) \
-    case MIRK_ELC_CMD_##CMD_ENUM: \
-        generate_cmd_##CMD_NAME(cmd_vec, instr.dst, instr.src, addr); \
-    break;
-
     switch (instr.cmd)
     {
+    #define MIRK_ELC_COMMAND(CMD_ENUM, CMD_CODE, CMD_NAME, CMD_DST, CMD_SRC) \
+        case MIRK_ELC_CMD_##CMD_ENUM: \
+            generate_cmd_##CMD_NAME(cmd_vec, instr.dst, instr.src, addr); \
+        break;
+
         #include "../elc_spec/ElcCommands.h"
         default: return;
+
+    #undef MIRK_ELC_COMMAND
     }
 
-#undef MIRK_ELC_COMMAND
+    #define MIRK_ELC_ARGTYPE(ARG_ENUM, ARG_CODE, ARG_NAME, ARG_SIZE) \
+        case MIRK_ELC_ARG_##ARG_ENUM: \
+            elc_size_ += ARG_SIZE; \
+        break;
+
+    switch (instr.dst)
+    {
+        #include "../elc_spec/ElcArgTypes.h"
+        default: break;
+    }
+
+    switch (instr.src)
+    {
+        #include "../elc_spec/ElcArgTypes.h"
+        default: break;
+    }
+            
+    #undef MIRK_ELC_ARGTYPE
+
+    elc_size_ += 1u;
+    elc_indx_vec_.push_back(elc_size_);
+    printf("%zu %lu \n",elc_indx_vec_.size(),  elc_size_);
 }
 
 void CGenElcX86::calculate_jumps()
 {
-    for (uint32_t addr : addr_vec_)
+    for (size_t idx = 0u; idx != x86_indx_vec_.size(); ++idx)
     {
+        uint32_t elc_indx = elc_indx_vec_[idx];
+        uint32_t x86_indx = x86_indx_vec_[idx];
+
         UMirkX86Word* patch_addr = nullptr;
-        if (text_vec_[addr].as_instr.dst == MIRK_X86_ARG_LBL)
+        if (text_vec_[x86_indx].as_instr.dst == MIRK_X86_ARG_LBL)
         {
-            patch_addr = text_vec_.data() + addr + 1u;
+            patch_addr = text_vec_.data() + x86_indx + 1u;
         }
-        else if (text_vec_[addr].as_instr.src == MIRK_X86_ARG_LBL)
+        else if (text_vec_[x86_indx].as_instr.src == MIRK_X86_ARG_LBL)
         {
-            switch (text_vec_[addr].as_instr.dst)
+            uint32_t x86_off = 0u;
+            switch (text_vec_[x86_indx].as_instr.dst)
             {
             #define MIRK_X86_ARGTYPE(ARG_ENUM, ARG_CODE, ARG_NAME, ARG_SIZE) \
                 case MIRK_X86_ARG_##ARG_ENUM: \
-                    addr += ARG_SIZE; \
+                    x86_off = ARG_SIZE; \
                 break;
 
                 #include "../x86_spec/X86ArgTypes.h"
@@ -48,27 +82,29 @@ void CGenElcX86::calculate_jumps()
             #undef MIRK_X86_ARGTYPE
             }
 
-            patch_addr = text_vec_.data() + addr + 1u;
+            patch_addr = text_vec_.data() + x86_indx + x86_off + 1u;
         }
 
         if (patch_addr)
         {
-            int32_t off = static_cast<int32_t>(patch_addr->as_imm);
-            off += addr;
+            uint32_t elc_jmp_indx = 
+                elc_indx_vec_[idx] + static_cast<int32_t>(patch_addr->as_imm);
+            uint32_t x86_jmp_indx = 0u;
 
-            size_t lt = 0u, rt = addr_vec_.size();
-            size_t idx = 0u; 
-            while (lt < rt)
+            size_t lt = 0u, rt = elc_indx_vec_.size();
+            while (lt + 1u < rt && elc_indx_vec_[lt] != elc_jmp_indx)
             {
-                idx = (lt + rt)/2u;
-                if (addr_vec_[idx] > off) rt = idx;
-                else                      lt = idx;
+                size_t mid = (lt + rt)/2u;
+                if (elc_indx_vec_[mid] <= elc_jmp_indx) lt = mid;
+                else                                    rt = mid;
             }
 
-            if (addr_vec_[idx] != off)
+            if (elc_indx_vec_[lt] == elc_jmp_indx)
+                x86_jmp_indx = x86_indx_vec_[lt];
+            else
                 return;
 
-            patch_addr->as_imm = idx;
+            patch_addr->as_imm = x86_jmp_indx - x86_indx;
         }
     }
 }
@@ -265,6 +301,8 @@ generate_x86(std::vector<SX86Data>& cmd_vec, EMirkX86Command cmd,
     text_vec_.push_back(UMirkX86Word{ cmd_vec.back().instr });
 
     text_vec_.insert(text_vec_.end(), addr, addr + data.dst_len + data.src_len);
+
+    x86_size_ += 1u + data.dst_len + data.src_len;
 }
 
 #define MIRK_GENERATE_SIMPLE(CMD_ENUM, CMD_NAME) \
@@ -280,6 +318,9 @@ generate_x86(std::vector<SX86Data>& cmd_vec, EMirkX86Command cmd,
         \
         make_x86_arg(dst, addr + 1u); \
         make_x86_arg(src, addr + 1u + dst_len); \
+        \
+        x86_size_ += 1u + dst_len + src_len; \
+        x86_indx_vec_.push_back(x86_size_); \
     }
 
 //----------------------------------------
@@ -367,6 +408,9 @@ generate_cmd_hlt(std::vector<SX86Data>& cmd_vec,
     //LOAD
     MIRK_GEN_X86(cmd_vec, POP, REG, NUL, st_args + 0x2); // push RDI
     MIRK_GEN_X86(cmd_vec, POP, REG, NUL, st_args + 0x0); // push RAX
+
+    //STORE ADDRESS
+    x86_indx_vec_.push_back(x86_size_);
 }
 
 void 
@@ -419,6 +463,9 @@ generate_cmd_in(std::vector<SX86Data>& cmd_vec,
     MIRK_GEN_X86(cmd_vec, POP, REG, NUL, st_args + 0x0); // pop RAX
                                
     MIRK_GEN_X86(cmd_vec, ADD, REG, IMM, st_args + 0xA); // add RSP, 0x08
+
+    //STORE ADDRESS
+    x86_indx_vec_.push_back(x86_size_);
 }
 
 void
@@ -471,6 +518,9 @@ generate_cmd_out(std::vector<SX86Data>& cmd_vec,
     MIRK_GEN_X86(cmd_vec, POP, REG, NUL, st_args + 0x0); // pop RAX
                                
     MIRK_GEN_X86(cmd_vec, ADD, REG, IMM, st_args + 0xA); // add RSP, 0x08
+
+    //STORE ADDRESS
+    x86_indx_vec_.push_back(x86_size_);
 }
 
 #undef MIRK_GEN_X86

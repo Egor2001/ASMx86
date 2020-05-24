@@ -89,6 +89,8 @@ public:
         for (const auto& elc_data : elc_data_vec)
             exegen.generate_next(result, elc_data.instr, elc_data.addr);
 
+        exegen.calculate_jumps();
+
         printf("X86 cnt: %zu\n", result.size());
         for (const auto& data : result)
         {
@@ -122,6 +124,7 @@ public:
             bingen.push_instr(data.instr, text_vec.data() + data.word_idx);
 
         std::vector<uint8_t> result;
+        bingen.calculate_jumps();
         bingen.translate_instr(result);
 
         printf("BIN cnt: %zu\n", result.size());

@@ -11,7 +11,7 @@
 class CBinGen
 {
 public:
-    CBinGen() = default;
+    CBinGen();
 
     CBinGen             (const CBinGen&) = delete;
     CBinGen& operator = (const CBinGen&) = delete;
@@ -33,10 +33,11 @@ protected:
 #undef MIRK_X86_COMMAND
 
 private:
-    size_t size_ = 0u;
+    size_t bin_size_ = 0u, x86_size_ = 0u;
 
+    std::vector<size_t> bin_indx_vec_;
+    std::vector<size_t> x86_indx_vec_;
     std::vector<SInstrData> data_vec_;
-    std::vector<size_t> addr_vec_;
 };
 
 #endif //SRC_BINGEN_CBINGEN_HPP

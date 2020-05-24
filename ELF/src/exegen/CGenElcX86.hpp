@@ -79,8 +79,12 @@ protected:
 #undef MIRK_ELC_COMMAND
 
 private:
+    uint32_t x86_size_ = 0u, elc_size_ = 0u;
+
+    std::vector<uint32_t> x86_indx_vec_;
+    std::vector<uint32_t> elc_indx_vec_;
+
     std::vector<UMirkX86Word> text_vec_;
-    std::vector<uint32_t> addr_vec_;
 };
 
 #endif //DISASM_CGENELCX86

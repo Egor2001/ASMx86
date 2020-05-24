@@ -319,6 +319,7 @@ uint8_t SInstrData::opt_arg_dis(const SInstrArg& arg)
     switch (arg.type)
     {
         case MIRK_X86_ARG_IMM: 
+        case MIRK_X86_ARG_LBL: 
             set_dis(arg.addr[0].as_imm); 
             break;
 

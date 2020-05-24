@@ -1,4 +1,5 @@
 #include "CBinGen.hpp"
+#include <cstdio>
 
 void CBinGen::translate_instr(std::vector<uint8_t>& text_vec)
 {

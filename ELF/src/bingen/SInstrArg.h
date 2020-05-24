@@ -17,24 +17,26 @@ struct SInstrArg
 
         switch (type)
         {
-            case MIRK_X86_ARG_IMM: 
-                result = YAGG_ARG_TYPE_IMM; 
+            case MIRK_X86_ARG_IMM:
+            case MIRK_X86_ARG_FLT:
+            case MIRK_X86_ARG_LBL:
+                result = YAGG_ARG_TYPE_IMM;
             break;
 
-            case MIRK_X86_ARG_REG: 
-                result = YAGG_ARG_TYPE_REG; 
+            case MIRK_X86_ARG_REG:
+                result = YAGG_ARG_TYPE_REG;
             break;
 
-            case MIRK_X86_ARG_MEM_IMM: 
-            case MIRK_X86_ARG_MEM_REG: 
-            case MIRK_X86_ARG_MEM_REG_IMM: 
-            case MIRK_X86_ARG_MEM_REG_REG: 
-                result = YAGG_ARG_TYPE_MEM; 
+            case MIRK_X86_ARG_MEM_IMM:
+            case MIRK_X86_ARG_MEM_REG:
+            case MIRK_X86_ARG_MEM_REG_IMM:
+            case MIRK_X86_ARG_MEM_REG_REG:
+                result = YAGG_ARG_TYPE_MEM;
             break;
 
-            case MIRK_X86_ARG_NUL: 
+            case MIRK_X86_ARG_NUL:
             default:
-                result = YAGG_ARG_TYPE_NUL; 
+                result = YAGG_ARG_TYPE_NUL;
             break;
         }
 

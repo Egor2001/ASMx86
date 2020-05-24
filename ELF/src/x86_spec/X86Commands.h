@@ -30,7 +30,7 @@ MIRK_X86_COMMAND (JB,      0x0f82, jb     )
 MIRK_X86_COMMAND (JGE,     0x0f8d, jge    )
 MIRK_X86_COMMAND (JBE,     0x0f86, jbe    )
                                         
-MIRK_X86_COMMAND (CALLF,   0xe8, call    )//DONE!
-MIRK_X86_COMMAND (RETF,    0xc3, ret     )//DONE!
+MIRK_X86_COMMAND (CALL,    0xe8, call    )//DONE!
+MIRK_X86_COMMAND (RET,     0xc3, ret     )//DONE!
                                         
 MIRK_X86_COMMAND (SYSCALL, 0x0f05, syscall)//DONE!

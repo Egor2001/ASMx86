@@ -229,6 +229,8 @@ private:
 
 int main(int argc, char* argv[])
 {
+    https://habr.com/ru/company/huawei/blog/503194/
+
     //test_CMirkContext(argc, argv);
 
     assert(argc == 2);
@@ -238,6 +240,7 @@ int main(int argc, char* argv[])
     //test.test_exegen();
     //test.test_bingen();
     test.test_elfgen();
+
 
     return 0u;
 }

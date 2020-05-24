@@ -169,7 +169,7 @@ CGenElcX86::
 make_x86_arg_flt(const UMirkElcWord* elc_data)
 {
     text_vec_.push_back(UMirkX86Word{ elc_data[0u].as_imm });
-    return MIRK_X86_ARG_IMM;
+    return MIRK_X86_ARG_FLT;
 }
 
 EMirkX86ArgType
@@ -177,7 +177,7 @@ CGenElcX86::
 make_x86_arg_lbl(const UMirkElcWord* elc_data)
 {
     text_vec_.push_back(UMirkX86Word{ elc_data[0u].as_imm });
-    return MIRK_X86_ARG_IMM;
+    return MIRK_X86_ARG_LBL;
 }
 
 EMirkX86ArgType
@@ -314,9 +314,9 @@ MIRK_GENERATE_SIMPLE(XOR, xor)
 
 //----------------------------------------
 //<CONTROL-FLOW>
-MIRK_GENERATE_SIMPLE(JMP,   jmp)
-MIRK_GENERATE_SIMPLE(CALLF, call)
-MIRK_GENERATE_SIMPLE(RETF,  ret)
+MIRK_GENERATE_SIMPLE(JMP,  jmp)
+MIRK_GENERATE_SIMPLE(CALL, call)
+MIRK_GENERATE_SIMPLE(RET,  ret)
 
 MIRK_GENERATE_SIMPLE(JZ,  jz)
 MIRK_GENERATE_SIMPLE(JZ,  je)

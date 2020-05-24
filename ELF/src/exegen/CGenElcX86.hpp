@@ -2,8 +2,8 @@
 #define DISASM_CGENELCX86
 
 #include <vector>
-#include <unordered_map>
 
+#include "../elc_spec/EMirkElcCommand.h"
 #include "../elc_spec/SMirkElcInstruction.h"
 #include "../elc_spec/UMirkElcWord.h"
 #include "../x86_spec/EMirkX86Command.h"
@@ -44,6 +44,8 @@ public:
                        const SMirkElcInstruction& instr, 
                        const UMirkElcWord* addr);
 
+    void calculate_jumps();
+
     const std::vector<UMirkX86Word>& text_vec() const noexcept 
     { return text_vec_; }
 
@@ -77,9 +79,8 @@ protected:
 #undef MIRK_ELC_COMMAND
 
 private:
-    std::unordered_multimap<const UMirkElcWord*, size_t> label_map_;
-
     std::vector<UMirkX86Word> text_vec_;
+    std::vector<uint32_t> addr_vec_;
 };
 
 #endif //DISASM_CGENELCX86

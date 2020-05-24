@@ -4,12 +4,22 @@ CFLAGS= -Isrc -std=c++17 -O2
 LD= $(CC)
 LFLAGS= 
 
+MIRKDIR= mirk
+YAGGDIR= yagg
+
 SRCDIR= src
 OBJDIR= obj
 BINDIR= bin
 
+HDRFILES= \
+	$(MIRKDIR)/CMirkContext.hpp \
+	$(SRCDIR)/disasm/CElcDisasm.hpp \
+	$(SRCDIR)/exegen/CGenElcX86.hpp \
+	$(SRCDIR)/bingen/CBinGen.hpp \
+	$(SRCDIR)/bingen/SInstrData.h
+
 SRCFILES= main.cpp \
-	$(SRCDIR)/elfgen/CMirkContext.cpp \
+	$(MIRKDIR)/CMirkContext.cpp \
 	$(SRCDIR)/disasm/CElcDisasm.cpp \
 	$(SRCDIR)/exegen/CGenElcX86.cpp \
 	$(SRCDIR)/bingen/CBinGen.cpp \

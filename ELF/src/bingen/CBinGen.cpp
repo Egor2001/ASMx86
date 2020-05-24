@@ -13,6 +13,18 @@ void CBinGen::translate_instr(std::vector<uint8_t>& text_vec)
 
 void CBinGen::calculate_jumps()
 {
+    for (size_t idx = 0u; idx != data_vec_.size(); ++idx)
+    {
+        if ((data_vec_[idx].i_mask & SInstrData::MIRK_BIN_FLAG_JMP) && 
+            (data_vec_[idx].i_mask & SInstrData::MIRK_BIN_DATA_DIS))
+        {
+            if (data_vec_[idx].i_dis >= addr_vec_.size())
+                return;
+
+            data_vec_[idx].i_dis = 
+                addr_vec_[data_vec_[idx].i_dis] - addr_vec_[idx];
+        }
+    }
 }
 
 bool CBinGen::push_instr(const SMirkX86Instruction& instr, 
@@ -71,7 +83,7 @@ bool CBinGen::push_instr(const SMirkX86Instruction& instr,
 #define YB_DATA_SET_EXT(DATA, VAL)      DATA.opt_ext(VAL)
 #define YB_DATA_SET_ARG(DATA, TGT, ARG) DATA.opt_arg_##TGT(ARG)
 
-#define YB_NEW_JUMP(DATA) { jump_vec_.push_back(data_vec_.size()); }
+#define YB_NEW_JUMP(DATA) { DATA.opt_jmp(); }
 #define YB_NEW_DATA(DATA) { data_vec_.push_back(DATA); \
                             size_ += data_vec_.back().byte_size(); \
                             addr_vec_.push_back(size_); }

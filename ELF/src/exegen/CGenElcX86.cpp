@@ -1,8 +1,8 @@
 #include "CGenElcX86.hpp"
 
 CGenElcX86::CGenElcX86():
-    label_map_{},
-    text_vec_{}
+    text_vec_{},
+    addr_vec_{}
 {}
 
 // public
@@ -22,6 +22,55 @@ void CGenElcX86::generate_next(std::vector<SX86Data>& cmd_vec,
     }
 
 #undef MIRK_ELC_COMMAND
+}
+
+void CGenElcX86::calculate_jumps()
+{
+    for (uint32_t addr : addr_vec_)
+    {
+        UMirkX86Word* patch_addr = nullptr;
+        if (text_vec_[addr].as_instr.dst == MIRK_X86_ARG_LBL)
+        {
+            patch_addr = text_vec_.data() + addr + 1u;
+        }
+        else if (text_vec_[addr].as_instr.src == MIRK_X86_ARG_LBL)
+        {
+            switch (text_vec_[addr].as_instr.dst)
+            {
+            #define MIRK_X86_ARGTYPE(ARG_ENUM, ARG_CODE, ARG_NAME, ARG_SIZE) \
+                case MIRK_X86_ARG_##ARG_ENUM: \
+                    addr += ARG_SIZE; \
+                break;
+
+                #include "../x86_spec/X86ArgTypes.h"
+                default: return;
+
+            #undef MIRK_X86_ARGTYPE
+            }
+
+            patch_addr = text_vec_.data() + addr + 1u;
+        }
+
+        if (patch_addr)
+        {
+            int32_t off = static_cast<int32_t>(patch_addr->as_imm);
+            off += addr;
+
+            size_t lt = 0u, rt = addr_vec_.size();
+            size_t idx = 0u; 
+            while (lt < rt)
+            {
+                idx = (lt + rt)/2u;
+                if (addr_vec_[idx] > off) rt = idx;
+                else                      lt = idx;
+            }
+
+            if (addr_vec_[idx] != off)
+                return;
+
+            patch_addr->as_imm = idx;
+        }
+    }
 }
 
 // protected static

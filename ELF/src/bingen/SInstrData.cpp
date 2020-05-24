@@ -61,6 +61,8 @@ size_t SInstrData::translate(uint8_t* addr) const
         addr += sizeof(uint32_t);
     }
 
+    //if (i_mask & MIRK_BIN_FLAG_JMP) *addr++ = 0x00;
+
     return (addr - init);
 }
 
@@ -166,6 +168,14 @@ uint8_t SInstrData::set_dis_imm(uint64_t val)
     return i_mask;
 }
 
+// set JMP flag (+flag_jmp)
+uint8_t SInstrData::set_jmp()
+{
+    i_mask |= MIRK_BIN_FLAG_JMP;
+
+    return i_mask;
+}
+
 //---------------------------------------- 
 
 uint8_t SInstrData::opt_rex(uint8_t val)
@@ -189,6 +199,12 @@ uint8_t SInstrData::opt_opc(uint8_t val)
 uint8_t SInstrData::opt_ext(uint8_t val)
 {
     set_reg_ext(val);
+    return i_mask;
+}
+
+uint8_t SInstrData::opt_jmp()
+{
+    set_jmp();
     return i_mask;
 }
 
@@ -234,16 +250,48 @@ uint8_t SInstrData::opt_arg_r_m(const SInstrArg& arg)
             break;
 
         case MIRK_X86_ARG_MEM_REG: 
-            set_mod_r_m(0b00, arg.addr[0].as_reg);
+            if (arg.addr[0].as_reg == 0x4) //check RSP case
+            {
+                set_mrm_sib(0b00, MIRK_SIB_NO_IDX, 0x4);
+                set_mod_r_m(0b00, MIRK_MRM_R_M_SIB);
+            }
+            else if (arg.addr[0].as_reg == 0x5) //check RBP case
+            {
+                set_mrm_sib(0b00, 0x5, MIRK_SIB_NO_BASE);
+                set_mod_r_m(0b00, MIRK_MRM_R_M_SIB);
+            }
+            else 
+            {
+                set_mod_r_m(0b00, arg.addr[0].as_reg);
+            }
             break;
             
         case MIRK_X86_ARG_MEM_REG_IMM: 
-            set_mod_r_m(0b10, arg.addr[0].as_reg);
+            if (arg.addr[0].as_reg == 0x4) //check RSP case
+            {
+                set_mrm_sib(0b00, MIRK_SIB_NO_IDX, 0x4);
+                set_mod_r_m(0b10, MIRK_MRM_R_M_SIB);
+            }
+            else
+            {
+                set_mod_r_m(0b10, arg.addr[0].as_reg);
+            }
+
             set_dis(arg.addr[1].as_reg);
             break;
 
         case MIRK_X86_ARG_MEM_REG_REG: 
-            set_mrm_sib(0b00, arg.addr[1].as_reg, arg.addr[0].as_reg);
+            if (arg.addr[0].as_reg == 0x5 || 
+                arg.addr[1].as_reg == 0x4) //check RBP & RSP case
+            {
+                set_mrm_sib(0b00, arg.addr[0].as_reg, arg.addr[1].as_reg);
+                set_mod_r_m(0b00, MIRK_MRM_R_M_SIB);
+            }
+            else
+            {
+                set_mrm_sib(0b00, arg.addr[1].as_reg, arg.addr[0].as_reg);
+                set_mod_r_m(0b00, MIRK_MRM_R_M_SIB);
+            }
             break;
 
         default: i_mask = 0u; break;

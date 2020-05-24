@@ -20,10 +20,12 @@ struct SInstrData
         MIRK_BIN_BYTE_MRM = 0x04,
         MIRK_BIN_BYTE_SIB = 0x08,
         MIRK_BIN_DATA_DIS = 0x10,
-        MIRK_BIN_DATA_IMM = 0x20
+        MIRK_BIN_DATA_IMM = 0x20,
+        MIRK_BIN_FLAG_JMP = 0x40,
     };
 
-    static constexpr uint8_t FIELD_SIZE[8u] = { 1u, 1u, 1u, 1u, 4u, 4u };
+    //TODO: bubble after jmp
+    static constexpr uint8_t FIELD_SIZE[8u] = { 1u, 1u, 1u, 1u, 4u, 4u, 0u };
 
 //used fields mask;
     uint8_t i_mask;
@@ -55,6 +57,8 @@ struct SInstrData
     uint8_t set_imm    (uint32_t imm);
     uint8_t set_dis_imm(uint64_t val);
 
+    uint8_t set_jmp    ();
+
 //x86 opt setters
     uint8_t opt_rex(uint8_t val);
     uint8_t opt_0fh();
@@ -66,6 +70,8 @@ struct SInstrData
     uint8_t opt_arg_r_m(const SInstrArg& arg);
     uint8_t opt_arg_dis(const SInstrArg& arg);
     uint8_t opt_arg_imm(const SInstrArg& arg);
+
+    uint8_t opt_jmp();
 };
 
 //#pragma pack(pop, 1)

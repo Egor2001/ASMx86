@@ -37,8 +37,6 @@ private:
 
     std::vector<SInstrData> data_vec_;
     std::vector<size_t> addr_vec_;
-
-    std::vector<size_t> jump_vec_;
 };
 
 #endif //SRC_BINGEN_CBINGEN_HPP

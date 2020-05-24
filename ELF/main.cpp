@@ -7,7 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "src/elfgen/CMirkContext.hpp"
+#include "mirk/CMirkContext.hpp"
+
 #include "src/disasm/CElcDisasm.hpp"
 #include "src/exegen/CGenElcX86.hpp"
 #include "src/bingen/CBinGen.hpp"

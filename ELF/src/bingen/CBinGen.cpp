@@ -1,5 +1,4 @@
 #include "CBinGen.hpp"
-#include <cstdio>
 
 CBinGen::CBinGen():
     bin_size_{}, x86_size_{},
@@ -19,9 +18,6 @@ void CBinGen::translate_instr(std::vector<uint8_t>& text_vec)
         text_vec.resize(text_vec.size() + data.byte_size(), 0u);
 
         data.translate(text_vec.data() + off);
-
-        bin_size_ += text_vec.size() - off;
-        bin_indx_vec_.push_back(bin_size_);
     }
 }
 
@@ -32,16 +28,14 @@ void CBinGen::calculate_jumps()
         if ((data_vec_[idx].i_mask & SInstrData::MIRK_BIN_FLAG_JMP) && 
             (data_vec_[idx].i_mask & SInstrData::MIRK_BIN_DATA_DIS))
         {
-            uint32_t x86_jmp_indx = 
-                x86_indx_vec_[idx] + static_cast<int32_t>(data_vec_[idx].i_dis);
+            uint32_t x86_jmp_indx = x86_indx_vec_[idx] +
+                static_cast<int32_t>(data_vec_[idx].i_dis);
             uint32_t bin_jmp_indx = 0u;
 
             size_t lt = 0u, rt = x86_indx_vec_.size();
             while (lt + 1u < rt && x86_indx_vec_[lt] != x86_jmp_indx)
             {
                 size_t mid = (lt + rt)/2u;
-                printf("BIN %lu %lu %zu %zu\n", 
-                        x86_indx_vec_[mid], x86_jmp_indx, lt, rt);
                 if (x86_indx_vec_[mid] <= x86_jmp_indx) lt = mid;
                 else                                    rt = mid;
             }
@@ -51,7 +45,7 @@ void CBinGen::calculate_jumps()
             else
                 return;
 
-            data_vec_[idx].i_dis = bin_indx_vec_[idx + 1u] - bin_jmp_indx;
+            data_vec_[idx].i_dis = bin_jmp_indx - bin_indx_vec_[idx + 1u];
         }
     }
 }

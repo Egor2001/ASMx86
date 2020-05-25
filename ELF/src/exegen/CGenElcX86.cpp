@@ -1,5 +1,4 @@
 #include "CGenElcX86.hpp"
-#include <cstdio>
 
 CGenElcX86::CGenElcX86():
     x86_size_{}, elc_size_{},
@@ -51,7 +50,6 @@ void CGenElcX86::generate_next(std::vector<SX86Data>& cmd_vec,
 
     elc_size_ += 1u;
     elc_indx_vec_.push_back(elc_size_);
-    printf("%zu %lu \n",elc_indx_vec_.size(),  elc_size_);
 }
 
 void CGenElcX86::calculate_jumps()
@@ -87,8 +85,8 @@ void CGenElcX86::calculate_jumps()
 
         if (patch_addr)
         {
-            uint32_t elc_jmp_indx = 
-                elc_indx_vec_[idx] + static_cast<int32_t>(patch_addr->as_imm);
+            uint32_t elc_jmp_indx = elc_indx_vec_[idx] + 1u + 
+                static_cast<int32_t>(patch_addr->as_imm);
             uint32_t x86_jmp_indx = 0u;
 
             size_t lt = 0u, rt = elc_indx_vec_.size();

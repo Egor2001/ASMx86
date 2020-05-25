@@ -1,0 +1,9 @@
+in
+pop ax
+call func
+hlt
+
+func:
+    push ax
+    out
+ret

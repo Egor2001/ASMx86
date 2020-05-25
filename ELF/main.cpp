@@ -230,7 +230,7 @@ private:
     UMirkElcWord* text_buf_;
 };
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
     https://habr.com/ru/company/huawei/blog/503194/
 

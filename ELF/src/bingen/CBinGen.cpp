@@ -1,4 +1,5 @@
 #include "CBinGen.hpp"
+#include <cstdio>
 
 CBinGen::CBinGen():
     bin_size_{}, x86_size_{},
@@ -71,7 +72,7 @@ bool CBinGen::push_instr(const SMirkX86Instruction& instr,
     }
 
     SInstrArg src = { .type = instr.src, .addr = addr + 1u + off };
-    switch (instr.dst)
+    switch (instr.src)
     {
         #include "../x86_spec/X86ArgTypes.h"
         default: 
